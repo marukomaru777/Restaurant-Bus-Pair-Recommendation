@@ -1,11 +1,13 @@
 # 情境感知餐廳推薦與臺中公車分析
 
-## Proposal 階段繳交檔案
+## Proposal 階段繳交
 
-- **① [Proposal Document](<Proposal doc/Proposal Document.pdf>)**：Abstract、Introduction、Related Work、Deep Research、Proposed Scheme、References。
-- **② [Proposal PPT](<Proposal doc/Proposal PPT.pdf>)**：完整呈現研究動機、文獻、Research Gap、Agent Design、Architecture、Flowchart、Pseudocode。
-- **③ [GitHub Repository](./)**：正式專題 Repository：`marukomaru777/Restaurant-Bus-Pair-Recommendation`。
-- **④ [DESIGN.md](DESIGN.md)**：從 Proposal 階段開始建立並持續維護系統設計文件。
+| 繳交檔案              | 位置                                                                         |
+| ----------------- | -------------------------------------------------------------------------- |
+| Proposal Document | [Proposal doc/Proposal Document.pdf](<Proposal doc/Proposal Document.pdf>) |
+| Proposal PPT      | [Proposal doc/Proposal PPT.pdf](<Proposal doc/Proposal PPT.pdf>)           |
+| GitHub Repository | https://github.com/marukomaru777/Restaurant-Bus-Pair-Recommendation        |
+| DESIGN.md         |  [DESIGN.md](DESIGN.md)                                                    |
 
 ## 專案簡介
 
