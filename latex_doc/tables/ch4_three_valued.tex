@@ -1,0 +1,18 @@
+{\small\singlespacing
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{|P{\dimexpr 0.1400\linewidth-2\tabcolsep-1.2500\arrayrulewidth\relax}|P{\dimexpr 0.2900\linewidth-2\tabcolsep-1.2500\arrayrulewidth\relax}|P{\dimexpr 0.2800\linewidth-2\tabcolsep-1.2500\arrayrulewidth\relax}|P{\dimexpr 0.2900\linewidth-2\tabcolsep-1.2500\arrayrulewidth\relax}|}
+\caption{必要條件的三值判定}\label{table:three_valued}\\
+\hline
+\textbf{限制} & \textbf{通過 T} & \textbf{不通過 F} & \textbf{不確定 U} \\ \hline
+\endfirsthead
+\hline
+\textbf{限制} & \textbf{通過 T} & \textbf{不通過 F} & \textbf{不確定 U} \\ \hline
+\endhead
+餐費預算 & 價格區間上界不超過同單位預算 & 區間下界已超過預算 & 價格不明、單位不明或區間跨預算 \\ \hline
+營業時間 & 抵達與預計離店皆落在同一有效營業區間 & 抵達或用餐區間已知不符 & 缺時段、抵達或必要用餐時間 \\ \hline
+步行上限 & 所有必要步行段符合使用者指定的上限定義 & 單段或總步行量已知超過所設定上限 & 缺所需步行路段、時間或上限定義 \\ \hline
+上車班次 & 可在班次到站前完成步行與緩衝，且符合候車上限 & 已知允許的班次皆趕不上或服務不符 & ETA 過期、時間依據不足或班次無法對齊 \\ \hline
+轉乘與次數 & 次數符合，前段到達加步行與緩衝仍接得上後段 & 已知超過次數或允許範圍內皆接不上 & 後段只有班距或時間無法確認 \\ \hline
+\end{longtable}
+}

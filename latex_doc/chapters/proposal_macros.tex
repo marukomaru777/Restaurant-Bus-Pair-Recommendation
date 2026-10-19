@@ -1,0 +1,7 @@
+% 共用表格欄位；由摘要及第一章載入，避免修改主檔。
+\ifdefined\proposalsetupdone\else
+\gdef\proposalsetupdone{1}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash\hspace{0pt}}p{#1}}
+% 書目依使用者指定：中文文獻在前，英文文獻在後。
+\nocite{taichung_eat_outside,taichung_gender,tdx_planner,tdx_bus,llm_planning_tools,subjective_attributes,critique_preference,bus_dynamic_replanning,llm_planning,ttg,hypertree_planning,bright,hybrid_retrieval,knowledge_graph_llm_recommendation,restaurant_habib,poi_stisan,bus_delay_uncertainty,google_places_policy}
+\fi

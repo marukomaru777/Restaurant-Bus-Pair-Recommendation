@@ -1,0 +1,47 @@
+\renewcommand{\lstlistingname}{演算法}   % 標題顯示 Algorithm 而不是 Listing
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  columns=fullflexible, keepspaces=true,
+  frame=single, rulecolor=\color{black!35}, framerule=0.6pt,
+  backgroundcolor=\color{black!4},
+  framexleftmargin=6pt, framexrightmargin=6pt,
+  framextopmargin=5pt, framexbottommargin=5pt,
+  aboveskip=1em, belowskip=1em,
+  captionpos=t, breaklines=true, breakatwhitespace=false,
+  keywordstyle=\bfseries\color{blue!55!black},
+  morekeywords={if,for,each,in,return,continue,while,is,empty,Input,Output},
+  literate={←}{{$\leftarrow$}}1,   % 讓 ← 在 XeLaTeX 也能正確顯示
+}
+\begin{lstlisting}[caption={Context-first restaurant recommendation with bus analysis},label={alg:recommend}]
+Input : User query Q, origin O, departure time t_dep
+Output: Restaurants R, bus plans P, evidence and unknown items D
+
+01: intent ← PARSE_WITH_SCHEMA(Q, O, t_dep)
+02: if required fields are missing: return ASK_USER(intent)
+03: if units or values are invalid: return EXPLAIN_INPUT_ERROR
+04: candidates ← RETRIEVE_CONTEXT_MATCHED_RESTAURANTS(intent)
+05: candidates ← DEDUPLICATE_BY_RESTAURANT(candidates)
+06: if candidates is empty: return EXPLAIN_NO_CONTEXT_MATCH
+07: evidence ← RETRIEVE_CONTEXT_AND_DOMAIN_EVIDENCE(candidates)
+08: C ← TOP_K(REMOVE_CONFIRMED_STATIC_FAILURES(candidates, evidence))
+09: verified, provisional, records ← empty collections
+10: for each restaurant r in C:
+11:     plans, tool_status ← GET_BUS_PLANS(O, r, t_dep)
+12:     if tool_status cannot establish usable plans:
+13:         RECORD_FAILURE_OR_UNKNOWN(r, tool_status, records); continue
+14:     for each plan p in plans:
+15:         bus_data ← FETCH_AND_ALIGN_RELEVANT_BUS_DATA(p)
+16:         timeline ← BUILD_UPDATED_TIMELINE(r, p, intent, bus_data)
+17:         h ← CHECK_REQUIRED_CONSTRAINTS(r, p, timeline, evidence)
+18:         record ← SAVE_DECISION(r, p, h, timeline, evidence, bus_data)
+19:         records.append(record)
+20:         if ANY_FALSE(h): continue
+21:         if ANY_UNKNOWN(h): provisional.append(r, p, record); continue
+22:         verified.append(r, p, SCORE_CONTEXT_AND_TRANSPORT(record))
+23: best_plan_per_restaurant ← KEEP_BEST_VERIFIED_PLAN(verified)
+24: R ← TOP_3_RESTAURANTS(STABLE_SORT(best_plan_per_restaurant))
+25: if R is empty: return NO_VERIFIED_RESULT(provisional, records)
+26: explanation ← GENERATE_FROM_RECORDS(R, records)
+27: if explanation fails fact checks: explanation ← TEMPLATE(R, records)
+28: return R, corresponding bus plans, explanation, provisional, records
+\end{lstlisting}

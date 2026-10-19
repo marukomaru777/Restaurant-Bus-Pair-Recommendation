@@ -1,0 +1,15 @@
+\input{chapters/proposal_macros}
+\begin{abstract}
+A report released by the Taichung City Government in 2025 recorded 22,612 food-service businesses at the end of 2024. For users planning a date, birthday celebration, or gathering, a suitable restaurant should match the dining context and be convenient to reach. Research combining language understanding with verifiable planning provides a basis for integrating these requirements~\cite{taichung_eat_outside,llm_planning_tools}.
+
+However, semantic relevance between restaurant reviews and a dining context does not imply convenient transportation. Long walking or waiting times and multiple transfers may make a relevant restaurant impractical. Adding a route only after selecting a restaurant prevents transportation conditions from influencing the selection.
+
+This project proposes a context-aware restaurant recommendation AI agent system that considers Taichung bus accessibility. It first aligns the user's dining context with restaurant-review semantics to retrieve candidates, then obtains bus itineraries and uses their feasibility and convenience to filter and rank restaurants.
+
+The system uses a language model to structure user requirements, vector or hybrid retrieval to recall restaurants, and a knowledge graph to associate attributes with supporting text. TDX services provide itinerary candidates and available arrival estimates. A programmatic analysis engine computes walking, waiting, riding, transfer, arrival, and dining times. Budget, opening hours, and boarding conditions are checked as pass, fail, or uncertain. Outputs include restaurants, supporting review evidence, transportation comparisons, and bus itineraries; explanations are generated from decision records.
+
+This work is at the proposal stage and has no experimental findings. The expected outcome is a prototype that explains contextual relevance and transportation trade-offs, helping users select restaurants that suit the dining occasion and are convenient to reach.
+\begin{flushleft}
+Keywords: \textbf{restaurant recommendation, review semantics, context awareness, Taichung buses, vector retrieval, knowledge graph, three-valued checking}
+\end{flushleft}
+\end{abstract}

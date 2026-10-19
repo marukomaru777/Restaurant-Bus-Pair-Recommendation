@@ -1,0 +1,17 @@
+\chapter{Introduction}
+\label{chapter:intro}
+
+\section{Motivation}
+In recent years, high throughput and strong error-correction capability have become increasingly critical in optical communication systems. To meet these demands, the 800Gbps Open ROADM MSA~\cite{openROADM}, the OpenZR+ MSA~\cite{openZR} and the 450km use case of ITU-T G709.3 optical network~
+\cite{ITUT} adopts the Open Forward Error Correction (oFEC) code. By integrating both soft decoding and hard decoding within a single decoding window, oFEC not only achieves excellent ECC performance but also exhibits almost no error floor, allowing it to outperform LDPC decoders at high SNR regions.
+
+However, once soft decoding is applied, the hardware cost of oFEC increases significantly. In particular, the SISO engine dominates the area, latency, and power consumption of the entire oFEC decoder, making it the most critical component of the architecture. If a SISO engine can be designed with lower hardware cost, it may enable oFEC decoders to become competitive not only in optical networks but also in other traditional communication systems.
+
+In this thesis, we design a SISO engine capable of supporting multiple configurations while maintaining a low hardware cost. We propose a reconfigurable SISO engine architecture together with an improved decoding algorithm that enables fully pipelined processing, ensuring consistently low latency between different configuration modes.
+\section{Thesis Organization}
+The remainder of this thesis is organized as follows. 
+Chapter 2 introduces the basic structure of Turbo Product Codes (TPC), and explains both the hard decoding and soft decoding algorithms. The soft decoding technique discussed here will later be applied to the oFEC decoding process.
+Chapter 3 introduces Open Forward Error Correction (oFEC) codes, describing their structure, component codes, and associated decoding procedures.
+Chapter 4, describe the architecture of the proposed SISO engine and how the proposed SISO engine is designed to be reconfigurable.
+Chapter 5 discusses the implementation results, discussion of the oFEC decoder, and performance comparisons with state-of-the-art decoders.
+Finally, the conclusion and future works are summarized in Chapter 6.

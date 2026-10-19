@@ -1,0 +1,37 @@
+{\small\singlespacing
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{|P{\dimexpr 0.0650\linewidth-2\tabcolsep-1.1250\arrayrulewidth\relax}|P{\dimexpr 0.0650\linewidth-2\tabcolsep-1.1250\arrayrulewidth\relax}|P{\dimexpr 0.1300\linewidth-2\tabcolsep-1.1250\arrayrulewidth\relax}|P{\dimexpr 0.1300\linewidth-2\tabcolsep-1.1250\arrayrulewidth\relax}|P{\dimexpr 0.1350\linewidth-2\tabcolsep-1.1250\arrayrulewidth\relax}|P{\dimexpr 0.1500\linewidth-2\tabcolsep-1.1250\arrayrulewidth\relax}|P{\dimexpr 0.1600\linewidth-2\tabcolsep-1.1250\arrayrulewidth\relax}|P{\dimexpr 0.1650\linewidth-2\tabcolsep-1.1250\arrayrulewidth\relax}|}
+\caption{Article Summary Table}\label{table:article_summary}\\
+\hline
+\textbf{Ref.} & \textbf{Year} & \textbf{Problem} & \textbf{AI Method} & \textbf{Domain}\newline\textbf{Knowledge} & \textbf{Dataset} & \textbf{Findings} & \textbf{Limitation} \\ \hline
+\endfirsthead
+\hline
+\textbf{Ref.} & \textbf{Year} & \textbf{Problem} & \textbf{AI Method} & \textbf{Domain}\newline\textbf{Knowledge} & \textbf{Dataset} & \textbf{Findings} & \textbf{Limitation} \\ \hline
+\endhead
+% Limitation evidence: ICML final PDF p.9, Impact Statement: commonsense criteria based on authors consensus.
+\cite{llm_planning} & 2024 & 多重限制旅遊規劃 & 語言代理與工具使用評測 & 旅遊安排與限制 & TravelPlanner，1,225 筆規劃意圖 & GPT-4 在其兩階段設定的最終通過率為 0.6\% & 常識性評估規則依作者共識制定，未涵蓋不同使用者的全部常識判準 \\ \hline
+% Limitation evidence: Sec.7 Limitation, p.3442: Prompt Designing, Solver Runtime, Risky Data.
+\cite{llm_planning_tools} & 2025 & 可驗證的限制規劃 & LLM 轉形式化限制，再由求解器處理 & 旅遊條件與不可滿足條件診斷 & TravelPlanner、作者建立的國際旅遊資料 & 其設定下成功率達 93.9\% & 提示與編碼設計耗時；求解可能逾時，且無法辨識資料庫中的錯誤或不安全資訊 \\ \hline
+% Limitation evidence: Sec.5.3 and Sec.6, pp.244-246: subjective proxy evaluation, correct parsing prerequisite, personalization and multi-round dialog.
+\cite{ttg} & 2024 & 自然語言旅遊需求求解 & 微調 LLM、混合整數線性規劃 & 航班、住宿與景點 & 依真實統計建立的合成資料 & 合成測試的回譯精確比對約 91\%；另有使用者評估 & 可行性與最適性以需求正確解析為前提；個人化與多輪對話仍待研究 \\ \hline
+% Limitation evidence: Appendix G, p.25: subjective relevance judgments and multimodal settings.
+\cite{bright} & 2025 & 需要推理的檢索 & BM25、向量等方法評測 & 多領域推理需求 & BRIGHT，1,384 筆查詢 & 顯示推理型檢索仍具挑戰 & 相關性標註具主觀性；尚未處理多模態檢索 \\ \hline
+% Limitation evidence: Sec.6 Limitations, p.13365: sparse relevance labels, false negatives and exact-match bias.
+\cite{hybrid_retrieval} & 2023 & 稀疏與稠密檢索互補 & 混合檢索訓練目標 & 通用資訊檢索 & MS MARCO、Natural Questions、TREC Robust04 & 互補性目標改善其檢索評測 & 稀疏相關性標註可能造成偽負例，且 MS MARCO 標註偏向精確詞彙匹配 \\ \hline
+% Limitation evidence: Sec.6 Limitations, p.27160: 7B/8B, Freebase, popularity-based retrieval policy.
+\cite{knowledge_graph_llm_recommendation} & 2025 & LLM 推薦的知識支持 & K-RagRec & 電影與書籍推薦 & MovieLens、Amazon Book & 結構化知識改善推薦；另分析虛構項目推薦 & 僅評估 7B／8B 模型及 Freebase；選擇性檢索策略以熱門度為依據 \\ \hline
+% Limitation evidence: Introduction and Conclusion, pp.12287,12292: preliminary sketch, formal semantics and evaluation methodology left open.
+\cite{subjective_attributes} & 2022 & 主觀屬性的表達 & 概念框架 & 推薦語句的觀點與主觀性 & 無；概念性論述 & 整理主觀屬性問題與研究方向 & 僅提出初步框架；完整形式語意、方法與評估指標仍屬待研究項目 \\ \hline
+% Limitation evidence: Sec.4, p.1918: exclusion and clarification of critique scope are future work.
+\cite{critique_preference} & 2021 & 餐廳批評如何轉為偏好 & 語言模型轉換、嵌入與評論排序 & 用餐氛圍與偏好修正 & 餐廳批評與評論資料 & 消融顯示批評轉換可改善其推薦 & 尚未處理以批評排除不適合餐廳，以及批評範圍歧義的澄清策略 \\ \hline
+% Limitation evidence: full paper Sec.III.A.4 p.318, Sec.IV pp.318-319 (two illustrated requests; no aggregate accuracy/significance test reported), Sec.V p.320 (authors explicitly exclude customer reviews).
+\cite{restaurant_habib} & 2016 & 位置、時間與偏好的餐廳推薦 & 時間衰減、互相強化與乘積評分 & 地理距離、簽到推估活動時段與人氣 & Foursquare 巴黎子集：7,991 間餐廳、111,325 筆簽到、6,903 名使用者 & 兩個查詢案例呈現偏好與時段的作用；早餐案例較比較方法符合用餐時段 & 未納入顧客評論；評估僅展示查詢案例，未報整體準確率或統計檢定 \\ \hline
+% Limitation evidence: Sec.IV.B.2 Finding 5, p.2094: TAAD sometimes useful; omitted last-POI/candidate spatial intervals offered as a possible reason.
+\cite{poi_stisan} & 2022 & 下一個 POI 的推薦 & STiSAN 時空注意力 & 到訪的時空間隔 & Gowalla、Brightkite、Weeplaces、Changchun & 評估時空間隔建模對序列推薦的作用 & TAAD 僅在部分情況有效；作者推測與忽略序列末項和候選 POI 的空間間隔有關 \\ \hline
+% Limitation evidence: Sec.5 Delay Modelling and Sec.6, pp.8435-8436: synthetic delays; real-world delay data and multicriteria routing as future work.
+\cite{bus_dynamic_replanning} & 2025 & 公共運輸中的動態重規劃 & 連接掃描、相關時刻表範圍與 push／pull 更新 & 班次、轉乘、步行與延誤 & Perth、Berlin、Paris、London 的 GTFS 網路與合成延誤 & 在其模擬設定下，改善抵達時間並降低更新查詢負擔 & 延誤採合成模型；真實延誤驗證與多目標路由仍待研究 \\ \hline
+% Limitation evidence: Sec.V.D and VI: overparameterization at end-of-route stops, broader datasets and network/high-low frequency comparisons needed.
+\cite{bus_delay_uncertainty} & 2022 & 公車延誤與預測不確定性 & Student-t 模型、貝氏推論 & 候車可靠性、時段與站間關係 & Stockholm 高頻公車資料 & 以機率預測表達延誤；其 Student-t 模型優於比較的 Gaussian 模型 & 需更大範圍資料驗證網路效應與高／低頻差異；末段站位可能有過度參數化 \\ \hline
+\end{longtable}
+}

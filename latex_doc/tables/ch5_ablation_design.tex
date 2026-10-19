@@ -1,0 +1,16 @@
+\newcolumntype{Y}[1]{>{\raggedright\arraybackslash\hspace{0pt}}p{#1}}
+
+\begin{table}[H]
+    \centering
+    \caption[行程中監控的三層驗證]{行程中監控的三層驗證}\label{table:monitor_validation}
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{5pt}
+    \normalsize
+    \begin{tabular}{|Y{\dimexpr 0.1400\textwidth-2\tabcolsep\relax}|Y{\dimexpr 0.4000\textwidth-2\tabcolsep\relax}|Y{\dimexpr 0.4600\textwidth-2\tabcolsep\relax}|}
+        \hline
+        \textbf{層次} & \textbf{做法} & \textbf{限制與用途} \\ \hline
+        重播 & 以連續輪詢所存的 N1 紀錄，找出預估到站時間跳升、StopStatus 轉為 2 至 4 的延誤事件，依紀錄時序重播監控邏輯，與不監控的靜態方案比較偵測率、誤報率、提醒領先時間與替代方案可搭乘比例 & 不使用 A1、A2 動態資料，到站時刻僅能由 N1 紀錄推定，只檢驗監控邏輯相對於 N1 資料的行為，不能證明 N1 預估與實際到站相符 \\ \hline
+        延誤注入 & 在重播資料上人為加入不同幅度的延誤與缺漏，以 10 分鐘門檻與 10 分鐘查詢間隔為基準，檢驗門檻與間隔變動下的敏感度 & 結果僅說明方法的行為，不視為真實成效 \\ \hline
+        現場 & 優先在尖峰時段等較易延誤的情境抽樣約 30 趟（計畫值），記錄推薦班次是否在預估時間窗內到站、轉乘是否接得上，並記錄被動遇到的延誤次數 & 實際到站的標準答案僅來自現場人工記錄；若遇到的延誤事件不足，結果僅作描述、不做推論檢定，並列為研究限制 \\ \hline
+    \end{tabular}
+\end{table}

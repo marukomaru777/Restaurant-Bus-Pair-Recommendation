@@ -1,0 +1,20 @@
+{\small\singlespacing
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{|P{\dimexpr 0.1900\linewidth-2\tabcolsep-1.3333\arrayrulewidth\relax}|P{\dimexpr 0.3200\linewidth-2\tabcolsep-1.3333\arrayrulewidth\relax}|P{\dimexpr 0.4900\linewidth-2\tabcolsep-1.3333\arrayrulewidth\relax}|}
+\caption{資料來源與用途}\label{table:data_sources}\\
+\hline
+\textbf{資料} & \textbf{預計來源} & \textbf{用途與核對方式} \\ \hline
+\endfirsthead
+\hline
+\textbf{資料} & \textbf{預計來源} & \textbf{用途與核對方式} \\ \hline
+\endhead
+餐廳評論與情境描述 & 可合法取得的評論資料；原稿規劃的 YouTube 逐字稿與留言可作補充 & 以文字片段對齊約會、慶生等情境；保存餐廳 ID、來源與片段，不把主觀描述當成事實保證 \\ \hline
+餐廳名稱與分店 & 店家公開資訊、人工核對；Places API 協助地點對應 & 同名或多分店時保留核對，不只靠名稱合併 \\ \hline
+營業時段與價格 & 店家官方資訊及必要的人工核對 & 保存核對日期、適用日期與原始價格區間 \\ \hline
+餐廳座標 & 可追溯的位置資料或現場核對 & 用於路線查詢；Place ID 不能代替座標 \\ \hline
+公車搭乘方案 & TDX 旅運規劃 & 取得各候選餐廳的公車與步行路線，再分析條件 \\ \hline
+公車 ETA 與狀態 & TDX 預估到站 N1 & 查核當下可取得的上車與轉乘依據 \\ \hline
+站位、路線、班表與站間時間 & TDX 公車資料 & 核對方向、站序、服務日及未來服務，區分班表與即時依據 \\ \hline
+\end{longtable}
+}

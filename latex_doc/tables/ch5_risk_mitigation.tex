@@ -1,0 +1,20 @@
+\newcolumntype{Y}[1]{>{\raggedright\arraybackslash\hspace{0pt}}p{#1}}
+
+\begin{table}[H]
+    \centering
+    \caption[風險與因應]{風險與因應}\label{table:risk_mitigation}
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{5pt}
+    \normalsize
+    \begin{tabular}{|Y{\dimexpr 0.2600\textwidth-2\tabcolsep\relax}|Y{\dimexpr 0.7400\textwidth-2\tabcolsep\relax}|}
+        \hline
+        \textbf{風險} & \textbf{因應} \\ \hline
+        餐廳資料偏誤與授權 & 影片只介紹特定餐廳，存在選擇偏誤，逐字稿萃取可能出錯；Places 內容依政策不得儲存，不使用 Google 評論與地圖內容，標準答案改由店家官方資訊與抽樣核對取得，涵蓋範圍較小 \\ \hline
+        營業時間與價格缺漏或過期 & 缺漏時判為不確定，不說符合；標準答案以店家官方資訊或抽樣核對為準 \\ \hline
+        預估到站不準、缺獨立真值 & 預估到站不保證準確，且不使用 A1、A2 動態資料；重播層僅檢驗監控邏輯，實際到站標準答案僅來自現場記錄 \\ \hline
+        預估只涵蓋短時間 & 轉乘後的班次可能超出即時預估範圍，只以班距估計並判為不確定 \\ \hline
+        識別碼對不齊 & 站牌、路線、餐廳三類資料以識別碼或名稱對照，路線以 RouteUID 完全比對，對不齊時標為不確定 \\ \hline
+        旅運規劃是否使用即時資料未確認 & 旅運規劃結果僅作候選方案，出發時再以 N1 即時預估查核 \\ \hline
+        簡化假設與範圍 & 轉乘步行時間、站間行駛時間等推算含簡化假設；只涵蓋臺中市公車，單一地區與人工標註無法支持跨城市結論；正式報告須包含失敗案例與負向結果 \\ \hline
+    \end{tabular}
+\end{table}

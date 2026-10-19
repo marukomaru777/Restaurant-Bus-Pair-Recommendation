@@ -1,0 +1,21 @@
+\newcolumntype{Y}[1]{>{\raggedright\arraybackslash\hspace{0pt}}p{#1}}
+
+\begin{table}[H]
+    \centering
+    \caption[評估指標與研究問題對應]{評估指標與研究問題對應}\label{table:metrics_rq}
+    \renewcommand{\arraystretch}{1.3}
+    \setlength{\tabcolsep}{5pt}
+    \normalsize
+    \begin{tabular}{|Y{\dimexpr 0.1300\textwidth-2\tabcolsep\relax}|Y{\dimexpr 0.4000\textwidth-2\tabcolsep\relax}|Y{\dimexpr 0.4700\textwidth-2\tabcolsep\relax}|}
+        \hline
+        \textbf{研究問題} & \textbf{指標} & \textbf{定義與分母} \\ \hline
+        RQ1 & Recall@K、MRR、nDCG（實際排名指標於先導階段確定） & 比較關鍵字、向量、混合三種召回；無相關餐廳的查詢另列，不把其 nDCG 設為完美 \\ \hline
+        RQ2 & 限制違反率 & 確有一項違反的「宣稱可行」方案數 ÷ 所有宣稱可行方案數 \\ \hline
+        RQ2 & 未知誤承諾率 & 必要證據不足（判為不確定）卻聲稱通過的數量 ÷ 所有宣稱可行方案數 \\ \hline
+        RQ2 & 覆蓋率與拒答率 & 至少回傳一筆已驗證方案的查詢 ÷ 所有測試查詢；與違反率同時報告，避免以拒答換取低錯誤 \\ \hline
+        RQ3 & 營業時間違反率 & 到店時已打烊的推薦數 ÷ 所有推薦數，依用餐時段分層報告 \\ \hline
+        RQ4 & 無法上車率、不確定標示正確率 & 無法上車或轉乘接不上的方案比例；「不確定」標示是否正確，以現場驗證為標準 \\ \hline
+        RQ5 & 總旅程時間、等車時間、違反率 & 最終方案的各項時間與違反率；排名因搭乘方案而改變的比例 \\ \hline
+        RQ6 & 偵測率、誤報率、提醒領先時間、替代方案可搭乘比例 & 於重播資料上計算，現場結果僅描述（見表~\ref{table:monitor_validation}） \\ \hline
+    \end{tabular}
+\end{table}

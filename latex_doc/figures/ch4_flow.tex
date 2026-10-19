@@ -1,0 +1,69 @@
+\input{figures/ch4_styles}
+\begin{figure}[H]
+\singlespacing
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[font=\small,>=Stealth,
+  st/.style={draw=archProd,fill=archPro,line width=0.8pt,rounded corners=4pt,
+    minimum width=4.1cm,minimum height=0.95cm,text width=3.85cm,align=center,inner sep=4pt},
+  llm/.style={st,draw=archLLMd,fill=archLLM},
+  dc/.style={diamond,aspect=2.6,draw=archKBd,fill=archKB,line width=0.8pt,
+    text width=2.85cm,align=center,inner sep=1pt},
+  tm/.style={st,draw=archGray,fill=white,rounded corners=7pt},
+  bad/.style={st,draw=archSrcd,fill=archSrc},
+  arr/.style={-{Stealth[length=2.3mm,width=1.8mm]},line width=0.9pt,archGray},
+  lab/.style={font=\scriptsize\bfseries,fill=white,inner sep=1pt,text=archGray}]
+\node[tm] (a) at (0,0) {1 輸入情境、位置與時間};
+\node[llm] (b) at (0,-1.6) {2 AI 解析、程式檢查欄位};
+\node[dc] (c) at (0,-3.4) {3 需求完整有效？};
+\node[bad,text width=2.4cm,minimum width=2.6cm] (ask) at (-3.75,-1.6) {補問或說明錯誤};
+\node[st] (d) at (0,-5.2) {4 評論語意召回、餐廳去重};
+\node[dc] (e) at (0,-7) {5 有相符候選？};
+\node[bad,text width=2.4cm,minimum width=2.6cm] (empty) at (-3.75,-7) {說明未找到相關餐廳};
+\node[st] (f) at (0,-8.9) {6 取得餐廳證據與候選};
+\node[st] (g) at (6,0) {7 選取下一餐廳或路線\\查詢公車方案與資料};
+\node[dc] (h) at (6,-1.9) {8 資料足以分析？};
+\node[st] (i) at (6,-3.8) {9 建立交通與用餐時間線};
+\node[dc] (j) at (6,-5.7) {10 必要條件 T／F／U};
+\node[bad,text width=3.0cm,minimum width=3.2cm] (unknown) at (11.3,-1.9) {記錄工具失敗或未知};
+\node[bad,text width=3.0cm,minimum width=3.2cm] (reject) at (11.3,-5.7) {F：排除此路線\\U：暫定並保留原因};
+\node[st] (k) at (6,-7.5) {11 計算情境與交通分數};
+\node[dc] (l) at (6,-9.4) {12 還有候選或路線？};
+\node[st] (m) at (6,-11.3) {13 每間餐廳保留最佳方案\\依情境與交通排序};
+\node[dc] (n) at (6,-13.2) {14 有已驗證餐廳？};
+\node[bad,text width=3.0cm,minimum width=3.2cm] (none) at (11.3,-13.2) {說明無結果原因\\與未知項};
+\node[llm] (o) at (6,-15.2) {15 最多三間餐廳、評論依據\\交通比較與搭乘方案};
+\draw[arr] (a)--(b);
+\draw[arr] (b)--(c);
+\draw[arr] (c.west)-|node[lab,pos=0.2,above]{否}(ask.south);
+\draw[arr] (ask.north)|-(-1.5,-0.8)-|(b.north);
+\draw[arr] (c)--node[lab,right]{是}(d);
+\draw[arr] (d)--(e);
+\draw[arr] (e.west)--node[lab,above]{否}(empty.east);
+\draw[arr] (e)--node[lab,right]{是}(f);
+\draw[arr] (f.east)--(2.9,-8.9)--(2.9,1.4)-|(g.north);
+\draw[arr] (g)--(h);
+\draw[arr] (h.east)--node[lab,above]{否}(unknown.west);
+\draw[arr] (h)--node[lab,right]{是}(i);
+\draw[arr] (i)--(j);
+\draw[arr] (j.east)--node[lab,above]{有 F／U}(reject.west);
+\draw[arr] (j)--node[lab,right]{全 T}(k);
+\draw[arr] (k)--(l);
+\draw[arr] (unknown.east)--(13.5,-1.9)--(13.5,-9.4)--(l.east);
+\draw[arr] (reject.south)--(11.3,-9.4)--(l.east);
+\draw[arr] (l.west)--node[lab,above]{是}(3.3,-9.4)--(3.3,0)--(g.west);
+\draw[arr] (l)--node[lab,right]{否}(m);
+\draw[arr] (m)--(n);
+\draw[arr] (n.east)--node[lab,above]{否}(none.west);
+\draw[arr] (n)--node[lab,right]{是}(o);
+\node[anchor=north west,text width=4.5cm,font=\scriptsize,align=left] at (-1.95,-11.0) {
+藍色：語言模型與說明\\
+綠色：程式處理\\
+黃色：條件判斷\\
+橘色：失敗、排除或未知\\[4pt]
+某一路線不通過，仍繼續處理其他候選。使用者可修改需求後重新輸入。};
+\end{tikzpicture}%
+}
+\caption[決策流程圖]{決策流程圖：先召回情境相符的餐廳，再取得公車方案並逐項查核，最後對餐廳排序。未知與明確不符合分開記錄，所有候選處理後才判斷是否有可推薦餐廳。}
+\label{fig:flow}
+\end{figure}

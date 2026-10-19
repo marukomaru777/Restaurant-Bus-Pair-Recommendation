@@ -1,0 +1,23 @@
+{\small\singlespacing
+\renewcommand{\arraystretch}{1.25}
+\setlength{\tabcolsep}{3pt}
+\begin{longtable}{|P{\dimexpr 0.1500\linewidth-2\tabcolsep-1.3333\arrayrulewidth\relax}|P{\dimexpr 0.4600\linewidth-2\tabcolsep-1.3333\arrayrulewidth\relax}|P{\dimexpr 0.3900\linewidth-2\tabcolsep-1.3333\arrayrulewidth\relax}|}
+\caption{十個深度理解問題與推理重點}\label{table:deep_questions}\\
+\hline
+\textbf{類型} & \textbf{問題} & \textbf{應能推理的重點} \\ \hline
+\endfirsthead
+\hline
+\textbf{類型} & \textbf{問題} & \textbf{應能推理的重點} \\ \hline
+\endhead
+Why & 為何營業查核要使用抵達與離店時間，而不是查詢時間？ & 候車與轉乘改變後續時間；需覆蓋用餐區間 \\ \hline
+Failure case & 預估 18:50 抵達、19:00 打烊，用餐需 90 分鐘，應如何判定？ & 抵達時有開門仍不足；用餐結束超過打烊為不通過；數字為設計示例 \\ \hline
+What-if & 公車預估 3 分鐘到站，使用者走到站牌需 6 分鐘，且這是最後一班時，能否推薦？ & 正常狀態與 ETA 存在不代表能搭上；須比較準備時間與班次 \\ \hline
+Trade-off & 增加轉乘緩衝後錯誤減少，但已驗證覆蓋也大幅下降，能否稱為改善？ & 同時報告風險與覆蓋，並比較旅程成本 \\ \hline
+Evidence & 兩個來源對營業時間不同，應依什麼資訊決定可用證據？ & 來源、適用日期、核對時間、版本與衝突；不能單看抓取時間 \\ \hline
+Comparison & 若 TDX 與另一服務的 ETA 不同，如何判斷誰較準？ & 同站位、方向、班次、觀測時點對齊，另取實際到站紀錄 \\ \hline
+Design decision & 圖譜與 SQL 保存相同事實時，圖譜仍可能有什麼價值？ & 證據路徑、查詢正確性、延遲與維護成本；不能預設推薦一定更好 \\ \hline
+Real-world scenario & 已上車後轉乘取消，為何不能仍以原出發地規劃？ & 行程狀態、當前可下車站與新時間；此為後續動態擴充應處理的情境 \\ \hline
+Counterexample & 所有查詢都不回傳方案，限制違反率很低，是否代表可靠？ & 零分母不能記為零錯誤；須看拒答、覆蓋與假性無解 \\ \hline
+Evaluation & 只重播 N1 紀錄，能否證明推薦降低實際錯過公車的比例？ & 可以驗證資訊變動與處理流程；實際到站與反事實效果須有額外證據 \\ \hline
+\end{longtable}
+}
