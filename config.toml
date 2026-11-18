@@ -11,3 +11,6 @@ meal_min = 90   # 使用者沒給用餐時長時的假設值（輸出要標示�
 walk_min = 10   # 單段步行上限（分）
 recall_k = 5    # 情境召回幾家
 max_results = 3 # 最多推薦幾家
+
+[llm]
+model = "gemini-3.6-flash"   # corpus/2_餐廳抽取.ipynb 用；金鑰 GEMINI_API_KEY 放 .env

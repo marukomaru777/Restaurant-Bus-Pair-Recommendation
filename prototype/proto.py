@@ -82,18 +82,27 @@ def check_budget(price, budget):
     return U, f"{lo}–{hi} 元跨過預算 {budget} 元"
 
 
-def check_hours(hours, arrive, meal_min):
+WEEK = "一二三四五六日"
+
+
+def check_hours(hours, arrive, meal_min, closed=()):
+    """hours：當天營業時段 [["11:30","14:00"],["17:30","21:00"]]；closed：公休星期（0=週一）。
+    打烊早於開店視為跨午夜（17:00–00:00）。ponytail: 凌晨到店算前一天時段的情況不處理。"""
     if not hours:
         return U, "缺營業時間"
-    day = arrive.date()
-    open_t, close_t = (datetime.combine(day, datetime.strptime(h, "%H:%M").time()) for h in hours)
-    # ponytail: 不處理跨午夜營業與公休日，O012 定案後補
+    if arrive.weekday() in closed:
+        return F, f"週{WEEK[arrive.weekday()]}公休"
     leave = arrive + timedelta(minutes=meal_min)
-    if arrive < open_t:
-        return F, f"{arrive:%H:%M} 到時還沒開（{hours[0]} 開）"
-    if leave > close_t:
-        return F, f"{arrive:%H:%M} 到、{leave:%H:%M} 吃完，但 {hours[1]} 打烊"
-    return T, f"{arrive:%H:%M} 到、{leave:%H:%M} 吃完，{hours[1]} 打烊前"
+    # 說明欄常寫 24:00，strptime 不收，當成 00:00（下面會視為跨午夜）
+    at = lambda h: datetime.combine(arrive.date(), datetime.strptime(h.replace("24:00", "00:00"), "%H:%M").time())
+    for o, c in hours:
+        open_t, close_t = at(o), at(c)
+        if close_t <= open_t:
+            close_t += timedelta(days=1)
+        if open_t <= arrive and leave <= close_t:
+            return T, f"{arrive:%H:%M} 到、{leave:%H:%M} 吃完，{c} 打烊前"
+    spans = "、".join(f"{o}–{c}" for o, c in hours)
+    return F, f"{arrive:%H:%M} 到、{leave:%H:%M} 吃完，不在營業時段 {spans} 內"
 
 
 def check_route(route, walk_min, depart):
@@ -136,7 +145,7 @@ def recommend(args, restaurants, get_plans):
         options = []
         for route in routes:
             arrive = datetime.fromisoformat(route["end_time"])
-            checks = {"預算": budget, "交通": check_route(route, args.walk, depart), "營業": check_hours(r["hours"], arrive, args.meal)}
+            checks = {"預算": budget, "交通": check_route(route, args.walk, depart), "營業": check_hours(r["hours"], arrive, args.meal, r.get("closed_weekdays", ()))}
             options.append((combine([c[0] for c in checks.values()]), route["travel_time"], checks, route))
         # 每店只保留最佳方案：先比狀態（T > U > F），再比旅行時間（D008）
         state, tt, checks, route = min(options, key=lambda o: ({T: 0, U: 1, F: 2}[o[0]], o[1]))
@@ -183,9 +192,14 @@ def selftest():
     assert check_budget([200, 500], 600)[0] == T
     assert check_budget(None, 600)[0] == U
     arrive = datetime(2026, 11, 20, 18, 50)
-    assert check_hours(["11:00", "19:00"], arrive, 90)[0] == F   # 用餐超過打烊
-    assert check_hours(["11:00", "22:00"], arrive, 90)[0] == T
+    assert check_hours([["11:00", "19:00"]], arrive, 90)[0] == F   # 用餐超過打烊
+    assert check_hours([["11:00", "22:00"]], arrive, 90)[0] == T
     assert check_hours(None, arrive, 90)[0] == U
+    assert check_hours([["11:30", "14:00"], ["17:30", "21:00"]], arrive, 90)[0] == T  # 晚上時段
+    assert check_hours([["11:30", "14:00"], ["17:30", "20:00"]], arrive, 90)[0] == F
+    assert check_hours([["17:00", "00:00"]], arrive, 90)[0] == T                       # 跨午夜
+    assert check_hours([["17:00", "24:00"]], arrive, 90)[0] == T
+    assert check_hours([["11:00", "22:00"]], arrive, 90, closed=[4])[0] == F           # 2026-11-20 是週五
     walk = lambda d: {"type": "pedestrian", "travelSummary": {"duration": d}}
     dep = datetime(2026, 11, 20, 19, 0)
     route = lambda *secs, start="2026-11-20T19:02:00": {"start_time": start, "sections": list(secs)}
@@ -211,8 +225,10 @@ def main():
     p.add_argument("--walk", type=int, default=setting("defaults", "walk_min"), help="單段步行上限分鐘")
     p.add_argument("--k", type=int, default=setting("defaults", "recall_k"), help="情境召回幾家")
     p.add_argument("--offline", action="store_true")
+    p.add_argument("--data", default=str(HERE / "restaurants.json"),
+                   help="餐廳資料；真實資料由 corpus/2_餐廳抽取.ipynb 產生在 ../corpus/restaurants.json")
     args = p.parse_args()
-    data = json.loads((HERE / "restaurants.json").read_text(encoding="utf-8"))["restaurants"]
+    data = json.loads(Path(args.data).read_text(encoding="utf-8"))["restaurants"]
     ok, maybe, no = recommend(args, data, plans_offline if args.offline else plans_online)
     show(ok, maybe, no, args.context)
     if args.offline:
