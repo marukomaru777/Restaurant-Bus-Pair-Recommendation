@@ -1,14 +1,15 @@
 """TDX 台中公車資料：API 實測(probe) 與到站預估蒐集(collect)。
 
-金鑰不寫在程式裡：Client ID 從環境變數 TDX_CLIENT_ID 讀取；
-Secret 若沒有設 TDX_CLIENT_SECRET，就讀本機檔案 .tdx_secret（已列入 .gitignore）。
+金鑰不寫在程式裡，存在本機檔案 tdx/.tdx_key（已列入 .gitignore）：
+    第 1 行：Client ID
+    第 2 行：Client Secret
+兩個環境變數 TDX_CLIENT_ID、TDX_CLIENT_SECRET 都有設時，優先用環境變數。
 
 用法：
     python tdx.py probe                    # 打一次各 API，存回應樣本到 samples/
     python tdx.py probe walk               # 只測路線規劃（含步行參數對照）
     python tdx.py collect 300 [路線...]     # 每分鐘抓一次到站預估，存到 data/eta_YYYYMMDD.jsonl
 """
-import getpass
 import json
 import os
 import sys
@@ -27,15 +28,13 @@ _token = None
 
 def get_token():
     global _token
-    if not os.environ.get("TDX_CLIENT_ID", "").strip():
-        sys.exit('沒有設定 Client ID：先執行 $env:TDX_CLIENT_ID = "你的 Client ID"（每開一個新終端機都要重設）')
-    if not os.environ.get("TDX_CLIENT_SECRET", "").strip():
-        # 優先讀本機檔案 .tdx_secret（已列入 .gitignore），避免 Secret 留在終端機畫面
-        f = HERE / ".tdx_secret"
-        secret = f.read_text(encoding="utf-8-sig").strip() if f.exists() else getpass.getpass("TDX Client Secret: ")
-        if not secret.strip():
-            sys.exit("沒有讀到 Secret：請把它存進 .tdx_secret 檔案")
-        os.environ["TDX_CLIENT_SECRET"] = secret.strip()
+    key = HERE / ".tdx_key"
+    if not (os.environ.get("TDX_CLIENT_ID", "").strip() and os.environ.get("TDX_CLIENT_SECRET", "").strip()):
+        # 沒設環境變數就讀本機檔案 .tdx_key（已列入 .gitignore）：第 1 行 ID、第 2 行 Secret
+        lines = [l.strip() for l in key.read_text(encoding="utf-8-sig").splitlines() if l.strip()] if key.exists() else []
+        if len(lines) < 2:
+            sys.exit(f"讀不到金鑰：請建立 {key}，第 1 行放 Client ID，第 2 行放 Client Secret")
+        os.environ["TDX_CLIENT_ID"], os.environ["TDX_CLIENT_SECRET"] = lines[0], lines[1]
     body = urllib.parse.urlencode({
         "grant_type": "client_credentials",
         "client_id": os.environ["TDX_CLIENT_ID"].strip(),
