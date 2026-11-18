@@ -1,0 +1,13 @@
+# 一般設定與預設值（進 git，大家共用）。
+# 機密（金鑰）不要寫在這裡，放 .env；部署時可用環境變數覆寫，例如 DEFAULTS_MEAL_MIN=120。
+
+[tdx]
+token_url = "https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token"
+api_url = "https://tdx.transportdata.tw/api"
+request_interval_sec = 13   # 免費方案每分鐘 5 次
+
+[defaults]
+meal_min = 90   # 使用者沒給用餐時長時的假設值（輸出要標示為假設）
+walk_min = 10   # 單段步行上限（分）
+recall_k = 5    # 情境召回幾家
+max_results = 3 # 最多推薦幾家

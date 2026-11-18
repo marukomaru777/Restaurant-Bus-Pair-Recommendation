@@ -1,9 +1,7 @@
 """TDX 台中公車資料：API 實測(probe) 與到站預估蒐集(collect)。
 
-金鑰不寫在程式裡，存在本機檔案 tdx/.tdx_key（已列入 .gitignore）：
-    第 1 行：Client ID
-    第 2 行：Client Secret
-兩個環境變數 TDX_CLIENT_ID、TDX_CLIENT_SECRET 都有設時，優先用環境變數。
+設定一律從 repo 根目錄的 settings.py 取得：金鑰放 .env（範本 .env.example），
+API 網址與呼叫間隔在 config.toml。
 
 用法：
     python tdx.py probe                    # 打一次各 API，存回應樣本到 samples/
@@ -11,7 +9,6 @@
     python tdx.py collect 300 [路線...]     # 每分鐘抓一次到站預估，存到 data/eta_YYYYMMDD.jsonl
 """
 import json
-import os
 import sys
 import time
 import urllib.error
@@ -20,34 +17,28 @@ import urllib.request
 from datetime import datetime, timedelta
 from pathlib import Path
 
-TOKEN_URL = "https://tdx.transportdata.tw/auth/realms/TDXConnect/protocol/openid-connect/token"
-API = "https://tdx.transportdata.tw/api"
 HERE = Path(__file__).parent
+sys.path.insert(0, str(HERE.parent))
+from settings import secret, setting  # noqa: E402
+
+TOKEN_URL = setting("tdx", "token_url")
+API = setting("tdx", "api_url")
+INTERVAL = setting("tdx", "request_interval_sec")
 _token = None
 
 
 def get_token():
     global _token
-    key = HERE / ".tdx_key"
-    if not (os.environ.get("TDX_CLIENT_ID", "").strip() and os.environ.get("TDX_CLIENT_SECRET", "").strip()):
-        # 沒設環境變數就讀本機檔案 .tdx_key（已列入 .gitignore）：第 1 行 ID、第 2 行 Secret
-        lines = [l.strip() for l in key.read_text(encoding="utf-8-sig").splitlines() if l.strip()] if key.exists() else []
-        if len(lines) < 2:
-            sys.exit(f"讀不到金鑰：請建立 {key}，第 1 行放 Client ID，第 2 行放 Client Secret")
-        os.environ["TDX_CLIENT_ID"], os.environ["TDX_CLIENT_SECRET"] = lines[0], lines[1]
+    cid, sec = secret("TDX_CLIENT_ID"), secret("TDX_CLIENT_SECRET")
     body = urllib.parse.urlencode({
-        "grant_type": "client_credentials",
-        "client_id": os.environ["TDX_CLIENT_ID"].strip(),
-        "client_secret": os.environ["TDX_CLIENT_SECRET"].strip(),
+        "grant_type": "client_credentials", "client_id": cid, "client_secret": sec,
     }).encode()
     try:
         with urllib.request.urlopen(urllib.request.Request(TOKEN_URL, body)) as r:
             _token = json.load(r)["access_token"]
     except urllib.error.HTTPError as e:
-        cid = os.environ["TDX_CLIENT_ID"]
         sys.exit(f"取得 token 失敗 HTTP {e.code}: {e.read().decode(errors='replace')}\n"
-                 f"Client ID 長度 {len(cid)}，開頭 {cid[:4]!r}、結尾 {cid[-4:]!r}"
-                 f"；Secret 長度 {len(os.environ['TDX_CLIENT_SECRET'])}")
+                 f"Client ID 長度 {len(cid)}，開頭 {cid[:4]!r}、結尾 {cid[-4:]!r}；Secret 長度 {len(sec)}")
 
 
 def call(path, **params):
@@ -103,7 +94,7 @@ def probe():
         status, text = call(path, **params)
         (out / f"{name}.json").write_text(text, encoding="utf-8")
         print(f"{name:20s} HTTP {status}  {len(text):>7,d} bytes")
-        time.sleep(13)  # 免費方案每分鐘 5 次
+        time.sleep(INTERVAL)  # 免費方案每分鐘 5 次
 
 
 def collect(routes):

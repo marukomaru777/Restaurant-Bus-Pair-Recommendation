@@ -3,3 +3,4 @@
 .specify
 __pycache__/
 .idea/
+.env

@@ -5,18 +5,24 @@
 
 > 餐廳資料 `restaurants.json` 是**示意資料**（店名、價格、營業時間、評論都是虛構的，只有座標是臺中真實區域）。
 
-## 設定 TDX 金鑰（只做一次）
+## 設定（只做一次）
 
-在 `tdx/` 底下建立 `.tdx_key`，寫兩行：
+所有設定都從 repo 根目錄的 `settings.py` 取得，來源依優先順序為：
+
+| 來源 | 放什麼 | 進 git |
+|---|---|---|
+| 環境變數 | 部署（例如 AWS）時在平台上設定，蓋過下面兩者 | — |
+| `.env` | 機密，例如 TDX 金鑰 | **不進** |
+| `config.toml` | 一般設定與預設值（API 網址、用餐 90 分、步行 10 分…） | 進 |
+
+把根目錄的 `.env.example` 複製成 `.env`，填入：
 
 ```
-你的 Client ID
-你的 Client Secret
+TDX_CLIENT_ID=你的 Client ID
+TDX_CLIENT_SECRET=你的 Client Secret
 ```
 
-這個檔案已列入 `tdx/.gitignore`，不會被 commit。
-
-> 舊的設定方式（環境變數 `TDX_CLIENT_ID` 加 `.tdx_secret` 檔）已改掉。兩個環境變數都有設時仍可用，否則請改建 `.tdx_key`。
+> 舊的 `tdx/.tdx_key`、`tdx/.tdx_secret` 已不再讀取，請改用 `.env`。
 
 ## 執行
 
@@ -32,7 +38,7 @@ python proto.py --context 慶生 --budget 600 --depart 2026-11-20T19:00 --origin
 - 免費方案每分鐘 5 次，每查一家店等 13 秒。同一把金鑰兩個人同時跑會出現 HTTP 429。
 - `--offline`：不呼叫 TDX，所有店套用同一份實測路線樣本，只用來測流程。
 
-其他參數：`--meal`（用餐分鐘，預設 90，為假設值）、`--walk`（單段步行上限分鐘，預設 10）、`--k`（召回幾家）。
+其他參數：`--meal`（用餐分鐘）、`--walk`（單段步行上限分鐘）、`--k`（召回幾家），預設值都在 `config.toml`。
 
 ## 目前跳過的部分
 

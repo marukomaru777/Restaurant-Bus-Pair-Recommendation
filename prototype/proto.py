@@ -1,6 +1,6 @@
 """最小原型：情境召回 → TDX 公車方案 → 時間線 → T／F／U 查核 → 排序。
 
-用法（在 prototype/ 底下執行；TDX 金鑰設定同 tdx/tdx.py）：
+用法（在 prototype/ 底下執行；金鑰放 repo 根目錄 .env，預設值在 config.toml）：
     python proto.py --context 慶生 --budget 600 --depart 2026-11-20T19:00 --origin 24.1372,120.6869
     python proto.py ... --offline        # 不呼叫 TDX，用 tdx/samples 的回應樣本跑流程
     python proto.py selftest             # 依 OpenSpec 情境檢查判定規則
@@ -17,7 +17,8 @@ from pathlib import Path
 
 HERE = Path(__file__).parent
 TDX_DIR = HERE.parent / "tdx"
-sys.path.insert(0, str(TDX_DIR))
+sys.path[:0] = [str(HERE.parent), str(TDX_DIR)]
+from settings import setting  # noqa: E402
 
 T, F, U = "T", "F", "U"
 
@@ -47,7 +48,7 @@ def plans_online(origin, r, depart, walk_min):
                             gc="1.0", top="3", transit="5", depart=depart.strftime("%Y-%m-%dT%H:%M:%S"),
                             first_mile_mode="0", first_mile_time=str(walk_min),
                             last_mile_mode="0", last_mile_time=str(walk_min))
-    time.sleep(13)  # 免費方案每分鐘 5 次
+    time.sleep(tdx.INTERVAL)  # 免費方案每分鐘 5 次
     if status != 200:
         return status  # 工具失敗 → 交通條件 U（429 通常是同一把金鑰同時有人在跑）
     return json.loads(text).get("data", {}).get("routes", [])
@@ -140,7 +141,7 @@ def recommend(args, restaurants, get_plans):
         # 每店只保留最佳方案：先比狀態（T > U > F），再比旅行時間（D008）
         state, tt, checks, route = min(options, key=lambda o: ({T: 0, U: 1, F: 2}[o[0]], o[1]))
         results.append(dict(r=r, rel=rel, state=state, checks=checks, route=route))
-    ok = sorted([x for x in results if x["state"] == T], key=lambda x: (-x["rel"], x["route"]["travel_time"]))[:3]
+    ok = sorted([x for x in results if x["state"] == T], key=lambda x: (-x["rel"], x["route"]["travel_time"]))[:setting("defaults", "max_results")]
     maybe = [x for x in results if x["state"] == U]
     no = [x for x in results if x["state"] == F]
     return ok, maybe, no
@@ -206,9 +207,9 @@ def main():
     p.add_argument("--budget", type=int, required=True, help="每人預算（元）")
     p.add_argument("--depart", required=True, help="出發時間，例如 2026-11-20T19:00（須晚於現在）")
     p.add_argument("--origin", required=True, help="出發地 緯度,經度")
-    p.add_argument("--meal", type=int, default=90, help="用餐分鐘（預設 90，為假設值）")
-    p.add_argument("--walk", type=int, default=10, help="單段步行上限分鐘")
-    p.add_argument("--k", type=int, default=5, help="情境召回幾家")
+    p.add_argument("--meal", type=int, default=setting("defaults", "meal_min"), help="用餐分鐘（未給時為假設值）")
+    p.add_argument("--walk", type=int, default=setting("defaults", "walk_min"), help="單段步行上限分鐘")
+    p.add_argument("--k", type=int, default=setting("defaults", "recall_k"), help="情境召回幾家")
     p.add_argument("--offline", action="store_true")
     args = p.parse_args()
     data = json.loads((HERE / "restaurants.json").read_text(encoding="utf-8"))["restaurants"]
