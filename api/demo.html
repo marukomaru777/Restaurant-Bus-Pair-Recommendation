@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>推薦 API 示範</title>
+<!-- 最陽春的示範頁：只示範怎麼呼叫 POST /recommend、怎麼讀回傳。正式畫面由前端重做。 -->
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 760px; margin: 24px auto; padding: 0 16px; line-height: 1.6; }
+  form { display: grid; grid-template-columns: 8em 1fr; gap: 8px 12px; align-items: center; }
+  input, button { font: inherit; padding: 6px 8px; }
+  button { grid-column: 2; cursor: pointer; }
+  .card { border: 1px solid #ccc; border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
+  .T { border-left: 6px solid #2e7d32; } .U { border-left: 6px solid #f9a825; } .F { border-left: 6px solid #c62828; }
+  .muted { color: #666; font-size: .9em; }
+  pre { background: #f5f5f5; padding: 12px; overflow-x: auto; font-size: .85em; }
+</style>
+</head>
+<body>
+<h1>推薦 API 示範</h1>
+<form id="f">
+  <label for="context">用餐情境</label><input id="context" value="慶生" required>
+  <label for="budget">每人預算（元）</label><input id="budget" type="number" value="600" min="1" required>
+  <label for="depart">出發時間</label><input id="depart" type="datetime-local" required>
+  <label for="origin">出發地（緯度,經度）</label><input id="origin" value="24.1372,120.6869" required>
+  <label for="offline">離線模式</label><label><input id="offline" type="checkbox" checked> 不查 TDX（馬上回、交通是假的）</label>
+  <button>查詢</button>
+</form>
+<p id="status" class="muted" role="status"></p>
+<div id="out"></div>
+<details><summary>原始回傳 JSON</summary><pre id="raw"></pre></details>
+
+<script>
+const $ = id => document.getElementById(id);
+const d = new Date(Date.now() + 86400000); d.setHours(19, 0, 0, 0);   // 預設：明天 19:00
+$("depart").value = new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+$("f").onsubmit = async e => {
+  e.preventDefault();
+  const [lat, lng] = $("origin").value.split(",").map(Number);
+  const body = { context: $("context").value, budget: Number($("budget").value), depart: $("depart").value,
+                 origin: [lat, lng], offline: $("offline").checked };
+  $("status").textContent = body.offline ? "查詢中…" : "查詢中…（真的查 TDX，每家店約 13 秒，請稍候）";
+  $("out").innerHTML = "";
+  const res = await fetch("/recommend", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const data = await res.json();
+  $("raw").textContent = JSON.stringify(data, null, 2);
+  if (!res.ok) { $("status").textContent = "錯誤：" + data.error; return; }
+  $("status").textContent = data.notes.join("；");
+  const groups = [["推薦", data.recommended], ["不確定（請自行確認）", data.uncertain], ["不通過", data.rejected]];
+  for (const [title, items] of groups) {
+    const h = document.createElement("h2"); h.textContent = `${title}（${items.length}）`; $("out").append(h);
+    for (const r of items) {
+      const card = document.createElement("div"); card.className = "card " + r.state;
+      const checks = Object.entries(r.checks).map(([k, c]) => `${{budget: "預算", transit: "交通", hours: "營業"}[k]} ${c.state}：${c.reason}`);
+      card.innerHTML = `<strong></strong><div class="muted"></div><p></p><ul></ul>`;
+      card.querySelector("strong").textContent = r.name;
+      card.querySelector(".muted").textContent = r.address || "";
+      card.querySelector("p").textContent = (r.evidence ? `「${r.evidence}」` : "") + (r.route ? `\n${r.route.summary}` : "");
+      for (const c of checks) { const li = document.createElement("li"); li.textContent = c; card.querySelector("ul").append(li); }
+      $("out").append(card);
+    }
+  }
+};
+</script>
+</body>
+</html>

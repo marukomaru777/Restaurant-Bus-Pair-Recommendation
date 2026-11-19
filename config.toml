@@ -14,3 +14,7 @@ max_results = 3 # 最多推薦幾家
 
 [llm]
 model = "gemini-3.6-flash"   # corpus/2_餐廳抽取.ipynb 用；金鑰 GEMINI_API_KEY 放 .env
+
+[api]
+host = "127.0.0.1"   # 部署（例如 AWS）時用環境變數 API_HOST=0.0.0.0 覆寫
+port = 8000
