@@ -41,10 +41,10 @@ class RecommendRequest(BaseModel):
     budget: StrictInt = Field(gt=0, description="每人預算（元）", examples=[600])
     depart: datetime = Field(description="出發時間 YYYY-MM-DDTHH:MM（台灣時間）；非離線模式須晚於現在", examples=["2026-11-20T19:00"])
     origin: List[float] = Field(min_length=2, max_length=2, description="出發地 [緯度, 經度]，緯度在前", examples=[[24.1372, 120.6869]])
-    offline: StrictBool = Field(False, description="true：不查 TDX、馬上回傳，交通是同一份樣本（開發畫面用）")
-    meal_min: StrictInt = Field(default_factory=lambda: setting("defaults", "meal_min"), ge=10, le=300, description="用餐分鐘")
-    walk_min: StrictInt = Field(default_factory=lambda: setting("defaults", "walk_min"), ge=1, le=30, description="單段步行上限分鐘")
-    recall_k: StrictInt = Field(default_factory=lambda: setting("defaults", "recall_k"), ge=1, le=10, description="先依情境挑幾家再查交通；越多越慢（每家約 13 秒）")
+    offline: StrictBool = Field(False, examples=[True], description="true：不查 TDX、馬上回傳，交通是同一份樣本（開發畫面用）")
+    meal_min: StrictInt = Field(default_factory=lambda: setting("defaults", "meal_min"), ge=10, le=300, description="用餐分鐘；不填用預設 90", examples=[90])
+    walk_min: StrictInt = Field(default_factory=lambda: setting("defaults", "walk_min"), ge=1, le=30, description="單段步行上限分鐘；不填用預設 10", examples=[10])
+    recall_k: StrictInt = Field(default_factory=lambda: setting("defaults", "recall_k"), ge=1, le=10, description="先依情境挑幾家再查交通；越多越慢（每家約 13 秒）；不填用預設 5", examples=[5])
 
     @field_validator("context")
     @classmethod
