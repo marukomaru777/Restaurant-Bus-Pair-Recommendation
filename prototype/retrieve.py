@@ -178,8 +178,76 @@ def compare(contexts):
             print(f"  {m:6} " + ("、".join(f"{name[i]} {h['score']}" for i, h in ranked) or "（無）") + (f"  ※{notes}" if notes else ""))
 
 
+METHODS = ("bigram", "bm25", "vector", "hybrid")
+
+
+def evaluate(labels, data, k, methods=METHODS):
+    """RQ1：每種方法對標註集算 Recall@k、Precision@k、MRR（只算有相關店的查詢），
+    以及沒有相關店的查詢平均誤召回幾家。方法退回 bm25（Gemini 失敗）時整個方法記為失敗，不把 bm25 的分數算給它。"""
+    by_name = {r["name"]: r["id"] for r in data}
+    unknown = sorted({n for q in labels for n in q["relevant"] if n not in by_name})
+    if unknown:
+        raise ValueError(f"標註的店名不在語料裡：{unknown}")
+    out = {}
+    for m in methods:
+        rows, fps = [], []
+        for q in labels:
+            hits, notes = retrieve(q["context"], data, m)
+            if notes:
+                out[m] = {"error": notes[0]}
+                break
+            top = [i for i, _ in sorted(hits.items(), key=lambda kv: (-kv[1]["score"], kv[0]))][:k]
+            rel = {by_name[n] for n in q["relevant"]}
+            if not rel:
+                fps.append(len(top))
+                continue
+            first = next((rank for rank, i in enumerate(top, 1) if i in rel), None)
+            rows.append((len(rel & set(top)) / len(rel), len(rel & set(top)) / len(top) if top else 0.0, 1 / first if first else 0.0))
+        else:
+            mean = lambda xs: round(sum(xs) / len(xs), 2) if xs else None
+            out[m] = {"recall": mean([r[0] for r in rows]), "precision": mean([r[1] for r in rows]),
+                      "mrr": mean([r[2] for r in rows]), "false_hits": mean(fps), "queries": len(labels)}
+    return out
+
+
+def run_evaluate(path):
+    data = json.loads((ROOT / "corpus" / "restaurants.json").read_text(encoding="utf-8"))["restaurants"]
+    labels = json.loads(Path(path).read_text(encoding="utf-8"))["queries"]
+    k = setting("defaults", "recall_k")
+    print(f"語料 {len(data)} 家、標註 {len(labels)} 個查詢、k = {k}（config [defaults] recall_k）\n")
+    print(f"{'method':8}{'Recall@k':>10}{'Prec@k':>9}{'MRR':>7}{'誤召回':>8}")
+    for m, s in evaluate(labels, data, k).items():
+        print(f"{m:8}" + (f"  失敗：{s['error']}" if "error" in s else
+                          f"{s['recall']:>10}{s['precision']:>9}{s['mrr']:>7}{s['false_hits']:>8}"))
+    print("\n誤召回＝沒有相關店的查詢（例如語料裡沒有慶生）平均還召回幾家，越少越好。")
+
+
+def selftest_evaluate():
+    shops = [{"id": "A", "name": "甲", "reviews": ["包廂很適合慶生"]},
+             {"id": "B", "name": "乙", "reviews": ["湯頭清甜"]},
+             {"id": "C", "name": "丙", "reviews": ["湯頭很鹹"]}]
+    labels = [{"context": "湯頭", "relevant": ["乙"]}, {"context": "湯頭", "relevant": ["丙"]},
+              {"context": "慶生", "relevant": ["甲"]}, {"context": "火鍋", "relevant": []}]
+    s = evaluate(labels, shops, k=5, methods=("bm25",))["bm25"]
+    # 湯頭：乙丙同分、依 id 排，乙第 1、丙第 2 → MRR (1 + 0.5 + 1) / 3；Precision (0.5 + 0.5 + 1) / 3
+    assert s["recall"] == 1.0 and s["precision"] == 0.67 and s["mrr"] == 0.83 and s["false_hits"] == 0, s
+    try:
+        evaluate([{"context": "x", "relevant": ["不存在"]}], shops, 5)
+        raise AssertionError("未知店名要報錯")
+    except ValueError:
+        pass
+    key = os.environ.pop("GEMINI_API_KEY", None)
+    assert "error" in evaluate(labels, shops, 5, ("vector",))["vector"]   # 退回 bm25 → 記為失敗，不冒充
+    if key:
+        os.environ["GEMINI_API_KEY"] = key
+    print("evaluate selftest ok")
+
+
 if __name__ == "__main__":
     if sys.argv[1:] == ["selftest"]:
         selftest()
+        selftest_evaluate()
     elif sys.argv[1:2] == ["compare"]:
         compare(sys.argv[2:])
+    elif sys.argv[1:2] == ["evaluate"]:
+        run_evaluate(sys.argv[2] if len(sys.argv) > 2 else Path(__file__).parent / "rq1_labels.json")
