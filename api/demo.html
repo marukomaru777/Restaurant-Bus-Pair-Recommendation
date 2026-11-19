@@ -14,11 +14,23 @@
   .card { border: 1px solid #ccc; border-radius: 8px; padding: 12px 16px; margin: 12px 0; }
   .T { border-left: 6px solid #2e7d32; } .U { border-left: 6px solid #f9a825; } .F { border-left: 6px solid #c62828; }
   .muted { color: #666; font-size: .9em; }
+  .say { display: flex; gap: 8px; margin-bottom: 8px; } .say textarea { flex: 1; font: inherit; padding: 6px 8px; }
+  #ask { background: #fff8e1; border-radius: 8px; padding: 8px 12px; margin: 8px 0; }
   pre { background: #f5f5f5; padding: 12px; overflow-x: auto; font-size: .85em; }
 </style>
 </head>
 <body>
 <h1>推薦 API 示範</h1>
+<!-- 一句話輸入（選用）：POST /parse 解析後預填下面的表單；有補問就問，回答接在原句後面再解析一次 -->
+<div class="say">
+  <textarea id="text" rows="2" aria-label="一句話描述需求" placeholder="一句話描述需求（選用），例：明天晚上七點跟女友慶生，兩個人預算一千五"></textarea>
+  <button id="parseBtn" type="button">解析</button>
+</div>
+<div id="ask" hidden>
+  <label for="answer" id="question"></label>
+  <div class="say"><input id="answer"><button id="answerBtn" type="button">回答</button></div>
+</div>
+<p id="pstatus" class="muted" role="status"></p>
 <form id="f">
   <label for="context">用餐情境</label><input id="context" value="古早味" required>
   <label for="budget">每人預算（元）</label><input id="budget" type="number" value="600" min="1" required>
@@ -68,6 +80,36 @@ async function origin() {
 }
 
 $("origin").onchange = () => { $("loc").textContent = ""; };
+
+// 一句話 → /parse → 預填表單；request 只有確定的欄位，questions 依序問
+async function parseText() {
+  const text = $("text").value.trim();
+  if (!text) return;
+  $("pstatus").textContent = "解析中…（呼叫 Gemini，約 5–15 秒）";
+  $("parseBtn").disabled = $("answerBtn").disabled = true;
+  try {
+    const res = await fetch("/parse", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) });
+    const data = await res.json();
+    if (!res.ok) { $("pstatus").textContent = "錯誤：" + data.error; return; }
+    const r = data.request;
+    if (r.context) $("context").value = r.context;
+    if (r.budget) $("budget").value = r.budget;
+    if (r.depart) $("depart").value = r.depart;
+    const q = data.questions[0];
+    $("ask").hidden = !q;
+    if (q) { $("question").textContent = q.question; $("answer").value = ""; $("answer").focus(); }
+    $("pstatus").textContent = [...data.notes, data.ready ? "已填好表單，確認出發地後按「查詢」" : ""].filter(Boolean).join("；");
+  } finally {
+    $("parseBtn").disabled = $("answerBtn").disabled = false;
+  }
+}
+$("parseBtn").onclick = parseText;
+$("answerBtn").onclick = () => {
+  if (!$("answer").value.trim()) return;
+  $("text").value += "\n" + $("answer").value.trim();   // 後端不記狀態：回答接在原句後面重送
+  parseText();
+};
+$("answer").onkeydown = e => { if (e.key === "Enter") $("answerBtn").click(); };
 
 $("f").onsubmit = async e => {
   e.preventDefault();
