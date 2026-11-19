@@ -5,8 +5,7 @@
     python proto.py ... --offline        # 不呼叫 TDX，用 tdx/samples 的回應樣本跑流程
     python proto.py selftest             # 依 OpenSpec 情境檢查判定規則
 
-ponytail: 跳過 LLM 解析（需求直接用參數給）、向量檢索（先用字元二元組重疊）、圖譜；
-這三塊接上後，查核與排序邏輯不用改。
+ponytail: 這裡跳過 LLM 解析（需求直接用參數給；API 的 /parse 有）與圖譜；接上後查核與排序邏輯不用改。
 """
 import argparse
 import json
@@ -19,29 +18,12 @@ HERE = Path(__file__).parent
 TDX_DIR = HERE.parent / "tdx"
 sys.path[:0] = [str(HERE.parent), str(TDX_DIR)]
 from settings import setting  # noqa: E402
+from retrieve import retrieve  # noqa: E402
 
 T, F, U = "T", "F", "U"
 
 
-# ---------- 1. 情境召回 ----------
-def bigrams(s):
-    s = "".join(ch for ch in s if not ch.isspace())
-    return {s[i:i + 2] for i in range(len(s) - 1)}  # 不用單字：「學生」不該算符合「慶生」
-
-
-def relevance(context, restaurant):
-    """情境詞和評論、店名的字元重疊比例（取最高）。店名也算，查「湯圓」才找得到「蘇媽媽湯圓」。
-    ponytail: 不用 LLM 給的別名（字幕原文常是整句話，會亂配）；換成 BM25／向量後介面不變。"""
-    q = bigrams(context) or {context}
-    texts = restaurant["reviews"] + [restaurant["name"]]
-    return round(max(len(q & bigrams(t)) / len(q) for t in texts), 2)
-
-
-def best_review(context, restaurant):
-    """最支持情境的評論；沒有任何評論提到（只靠店名對上）時回傳 None，不拿無關評論充當依據。"""
-    q = bigrams(context) or {context}
-    best = max(restaurant["reviews"], key=lambda r: len(q & bigrams(r)), default=None)
-    return best if best and q & bigrams(best) else None
+# ---------- 1. 情境召回：retrieve.py（bigram／bm25／vector／hybrid，config.toml [retrieval]）----------
 
 
 # ---------- 2. 公車方案 ----------
@@ -154,30 +136,31 @@ def combine(states):
 
 # ---------- 4. 主流程 ----------
 def recommend(args, restaurants, get_plans):
+    """回傳 (推薦, 不確定, 不通過, notes)；每筆有 r（餐廳）、rel（情境分數）、quote（支持評論）、state、checks。"""
     depart = datetime.fromisoformat(args.depart)
     # 情境完全不相符的店不進候選，交通再好也不推薦（D002：先情境、後交通）
-    relevant = sorted((r for r in restaurants if relevance(args.context, r) > 0),
-                      key=lambda r: -relevance(args.context, r))
+    hits, notes = retrieve(args.context, restaurants)
+    relevant = sorted((r for r in restaurants if r["id"] in hits), key=lambda r: (-hits[r["id"]]["score"], r["id"]))
+    tag = lambda r: dict(r=r, rel=hits[r["id"]]["score"], quote=hits[r["id"]]["quote"])
     results, cands = [], []
     # 模組 6 粗篩：預算、營業已確定不符的不查 TDX（每家省 13 秒），也不佔召回名額 K
     for r in relevant:
         budget = check_budget(r["price"], args.budget)
         hours = precheck_hours(r["hours"], depart, args.meal, r.get("closed_weekdays", ()))
         if F in (budget[0], hours[0]):
-            results.append(dict(r=r, rel=relevance(args.context, r), state=F,
+            results.append(dict(**tag(r), state=F,
                                 checks={"預算": budget, "交通": (U, "未查（其他條件已不符）"), "營業": hours}))
         elif len(cands) < args.k:
             cands.append(r)
     for r in cands:
-        rel = relevance(args.context, r)
         budget = check_budget(r["price"], args.budget)
         routes = get_plans(args.origin, r, depart, args.walk)
         if isinstance(routes, int):
             hint = "，超過每分鐘 5 次，稍後重跑" if routes == 429 else ""
-            results.append(dict(r=r, rel=rel, state=combine([budget[0], U]), checks={"預算": budget, "交通": (U, f"TDX 查詢失敗 HTTP {routes}{hint}")}))
+            results.append(dict(**tag(r), state=combine([budget[0], U]), checks={"預算": budget, "交通": (U, f"TDX 查詢失敗 HTTP {routes}{hint}")}))
             continue
         if not routes:
-            results.append(dict(r=r, rel=rel, state=F, checks={"預算": budget, "交通": (F, "找不到公車方案")}))
+            results.append(dict(**tag(r), state=F, checks={"預算": budget, "交通": (F, "找不到公車方案")}))
             continue
         options = []
         for route in routes:
@@ -186,11 +169,11 @@ def recommend(args, restaurants, get_plans):
             options.append((combine([c[0] for c in checks.values()]), route["travel_time"], checks, route))
         # 每店只保留最佳方案：先比狀態（T > U > F），再比旅行時間（D008）
         state, tt, checks, route = min(options, key=lambda o: ({T: 0, U: 1, F: 2}[o[0]], o[1]))
-        results.append(dict(r=r, rel=rel, state=state, checks=checks, route=route))
+        results.append(dict(**tag(r), state=state, checks=checks, route=route))
     ok = sorted([x for x in results if x["state"] == T], key=lambda x: (-x["rel"], x["route"]["travel_time"]))[:setting("defaults", "max_results")]
     maybe = [x for x in results if x["state"] == U]
     no = [x for x in results if x["state"] == F]
-    return ok, maybe, no
+    return ok, maybe, no, notes
 
 
 def describe_route(route):
@@ -207,7 +190,7 @@ def show(ok, maybe, no, context):
     print("\n== 推薦（全部條件通過）==")
     for i, x in enumerate(ok, 1):
         print(f"{i}. {x['r']['name']}  情境分數 {x['rel']}")
-        quote = best_review(context, x["r"])
+        quote = x["quote"]
         print(f"   評論依據：「{quote}」" if quote else f"   評論依據：無（店名符合「{context}」）")
         print(f"   交通：{describe_route(x['route'])}")
         for k, (st, why) in x["checks"].items():
@@ -255,7 +238,7 @@ def selftest():
     args = argparse.Namespace(context="湯包", budget=300, depart="2026-11-20T19:00", origin="24.13,120.68", walk=10, meal=90, k=5)
     shop = {"id": "B", "name": "湯包早餐", "lat": 24.13, "lng": 120.68, "price": None,
             "hours": [["05:30", "11:30"]], "closed_weekdays": [], "reviews": ["湯包很好吃"]}
-    ok_, maybe_, no_ = recommend(args, [shop], lambda *a: calls.append(a) or [])
+    ok_, maybe_, no_, _ = recommend(args, [shop], lambda *a: calls.append(a) or [])
     assert not calls and not ok_ and not maybe_ and no_[0]["checks"]["營業"][0] == F
     walk = lambda d: {"type": "pedestrian", "travelSummary": {"duration": d}}
     dep = datetime(2026, 11, 20, 19, 0)
@@ -265,12 +248,6 @@ def selftest():
     assert check_route(route(walk(300), {"type": "transit"}, walk(400)), 10, dep)[0] == T
     assert check_route(route(walk(300), start="2026-11-20T18:53:18"), 10, dep)[0] == F  # 早於出發時間
     assert combine([T, U, T]) == U and combine([T, U, F]) == F and combine([T, T]) == T  # 有 U 無 F
-    assert relevance("慶生", {"name": "R", "reviews": ["包廂很適合慶生"]}) == 1.0
-    assert relevance("慶生", {"name": "R", "reviews": ["學生聚餐首選"]}) == 0     # 單字「生」不算
-    tangyuan = {"name": "蘇媽媽湯圓", "reviews": ["皮很Q，湯頭清甜"]}
-    assert relevance("湯圓", tangyuan) == 1.0 and best_review("湯圓", tangyuan) is None   # 只靠店名
-    assert best_review("湯頭", tangyuan) == "皮很Q，湯頭清甜"
-    assert relevance("水餃", {"name": "R", "reviews": []}) == 0
     print("selftest ok")
 
 
@@ -290,7 +267,9 @@ def main():
                    help="餐廳資料；真實資料由 corpus/2_餐廳抽取.ipynb 產生在 ../corpus/restaurants.json")
     args = p.parse_args()
     data = json.loads(Path(args.data).read_text(encoding="utf-8"))["restaurants"]
-    ok, maybe, no = recommend(args, data, plans_offline if args.offline else plans_online)
+    ok, maybe, no, notes = recommend(args, data, plans_offline if args.offline else plans_online)
+    for n in notes:
+        print("※", n)
     show(ok, maybe, no, args.context)
     if args.offline:
         print("\n※ --offline：所有店都套用同一份實測路線樣本，交通結果不代表真實路線。")

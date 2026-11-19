@@ -19,3 +19,9 @@ model = "gemini-3.5-flash"   # corpus/2_餐廳抽取.ipynb 與 prototype/parse.p
 [api]
 host = "127.0.0.1"   # 部署（例如 AWS）時用環境變數 API_HOST=0.0.0.0 覆寫
 port = 8000
+
+[retrieval]   # 情境召回（prototype/retrieve.py；RQ1 比較用，O005 未定案）
+method = "bm25"              # bigram／bm25／vector／hybrid
+embed_model = "gemini-embedding-001"
+hybrid_weight = 0.5          # hybrid = w·bm25 + (1−w)·vector
+min_cos = 0.70               # vector 進候選的餘弦門檻；embedding-001 在 12 家語料上看的（無關的約 0.60–0.68），語料擴充後要重調

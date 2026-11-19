@@ -204,14 +204,14 @@ def route_json(route):
             "fare": route.get("total_price"), "summary": proto.describe_route(route), "sections": sections}
 
 
-def item_json(x, context):
+def item_json(x):
     r = x["r"]
     checks = {key: {"state": st, "reason": why} for key, (st, why) in
               zip(("budget", "transit", "hours"), (x["checks"].get(k, (proto.U, "未查核")) for k in ("預算", "交通", "營業")))}
     return {
         "id": r["id"], "name": r["name"], "address": r.get("address"), "lat": r["lat"], "lng": r["lng"],
         "state": x["state"], "relevance": x["rel"],
-        "evidence": proto.best_review(context, r) if r["reviews"] else None,
+        "evidence": x["quote"],
         "counter_evidence": r.get("counter", []), "price": r.get("price"), "hours": r.get("hours"),
         "closed_weekdays": r.get("closed_weekdays", []), "checks": checks,
         "route": route_json(x["route"]) if x.get("route") else None, "sources": r.get("sources", []),
@@ -252,15 +252,15 @@ def health():
 def recommend(req: RecommendRequest):
     args = proto_args(req)
     restaurants = json.loads(data_path().read_text(encoding="utf-8"))["restaurants"]
-    ok, maybe, no = proto.recommend(args, restaurants, proto.plans_offline if req.offline else proto.plans_online)
-    notes = (["offline：所有店套用同一份路線樣本，交通結果不是真的"] if req.offline else []) \
+    ok, maybe, no, found = proto.recommend(args, restaurants, proto.plans_offline if req.offline else proto.plans_online)
+    notes = found + (["offline：所有店套用同一份路線樣本，交通結果不是真的"] if req.offline else []) \
         + ([f"用餐時長未指定，假設 {req.meal_min} 分鐘"] if "meal_min" not in req.model_fields_set else []) \
         + ([] if ok or maybe or no else [f"語料裡沒有提到「{req.context}」的餐廳，換個說法或等語料擴充"])
     return {
         "request": {**req.model_dump(), "depart": args.depart},
-        "recommended": [item_json(x, req.context) for x in ok],
-        "uncertain": [item_json(x, req.context) for x in maybe],
-        "rejected": [item_json(x, req.context) for x in no],
+        "recommended": [item_json(x) for x in ok],
+        "uncertain": [item_json(x) for x in maybe],
+        "rejected": [item_json(x) for x in no],
         "notes": notes,
         "data": data_path().relative_to(ROOT).as_posix(),
     }
@@ -299,6 +299,7 @@ def selftest():
     import uvicorn
     global data_path
     data_path = lambda: ROOT / "prototype" / "restaurants.json"  # 固定用示意資料，結果才可預期
+    os.environ["RETRIEVAL_METHOD"] = "bm25"   # 召回固定用 bm25：不呼叫 Gemini，結果才可預期
     server = uvicorn.Server(uvicorn.Config(app, host="127.0.0.1", port=8765, log_level="warning"))
     threading.Thread(target=server.run, daemon=True).start()
     while not server.started:
