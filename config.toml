@@ -14,7 +14,7 @@ max_travel_min = 180  # 粗篩假設的最長車程（分）：出發後這段�
 max_results = 3 # 最多推薦幾家
 
 [llm]
-model = "gemini-3.6-flash"   # corpus/2_餐廳抽取.ipynb 用；金鑰 GEMINI_API_KEY 放 .env
+model = "gemini-3.5-flash"   # corpus/2_餐廳抽取.ipynb 與 prototype/parse.py 用；金鑰 GEMINI_API_KEY 放 .env（3.6 常 503 忙線，2026-11-19 改 3.5）
 
 [api]
 host = "127.0.0.1"   # 部署（例如 AWS）時用環境變數 API_HOST=0.0.0.0 覆寫

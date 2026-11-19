@@ -9,6 +9,7 @@ ponytail: 路由用一般 def（FastAPI 會丟到執行緒池跑），TDX 免費
 多人同時查會被擋（429）；要多人用時先換付費 TDX 方案或加佇列。
 """
 import json
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -23,6 +24,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, field_
 HERE = Path(__file__).parent
 ROOT = HERE.parent
 sys.path[:0] = [str(ROOT), str(ROOT / "prototype")]
+import parse as parser  # noqa: E402
 import proto  # noqa: E402
 from settings import setting  # noqa: E402
 
@@ -67,6 +69,11 @@ class RecommendRequest(BaseModel):
         return self
 
 
+class ParseRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=500, description="使用者的一句需求；回答補問時把回答接在原句後面再送一次",
+                      examples=["明天晚上七點跟女友慶生，兩個人預算一千五"])
+
+
 # 驗證失敗時給使用者看的中文訊息（依欄位）；400 + {"error": ...}，前端可直接顯示
 HINTS = {
     "context": "context（用餐情境）必填，例如 \"慶生\"",
@@ -77,6 +84,7 @@ HINTS = {
     "meal_min": "meal_min 要是 10–300 的整數",
     "walk_min": "walk_min 要是 1–30 的整數",
     "recall_k": "recall_k 要是 1–10 的整數",
+    "text": "text（需求句子）必填，最多 500 字",
 }
 
 
@@ -146,6 +154,27 @@ class RecommendResponse(BaseModel):
     rejected: List[Restaurant] = Field(description="有條件不符合")
     notes: List[str] = Field(description="要讓使用者看到的提醒，照原文顯示")
     data: str = Field(description="目前用的餐廳資料檔")
+
+
+class Question(BaseModel):
+    field: str = Field(description="要補的欄位：context、budget、people、depart")
+    question: str = Field(description="給使用者看的補問")
+
+
+class Tags(BaseModel):
+    occasions: List[str] = Field(description="場合標籤（DESIGN §9.1）")
+    companions: List[str] = Field(description="同行對象標籤")
+    aspects: List[str] = Field(description="在意的面向")
+
+
+class ParseResponse(BaseModel):
+    request: dict = Field(description="已確定的 /recommend 欄位（context、budget、depart、meal_min 中有確定的才有）；origin 不在這裡，要前端定位")
+    tags: Tags
+    people: Optional[int] = Field(description="人數；原句推不出來是 null")
+    origin_text: Optional[str] = Field(description="原句提到的出發地點，只供提醒")
+    questions: List[Question] = Field(description="補問，依序問；空的表示可以直接送 /recommend")
+    ready: bool = Field(description="true：request 加上 origin 就能送 /recommend")
+    notes: List[str] = Field(description="要讓使用者看到的提醒，例如整團預算換算")
 
 
 class Health(BaseModel):
@@ -237,6 +266,21 @@ def recommend(req: RecommendRequest):
     }
 
 
+@app.post("/parse", response_model=ParseResponse,
+          responses={400: {"model": Error, "description": "text 缺漏或太長"},
+                     502: {"model": Error, "description": "Gemini 忙線或失敗；請使用者稍後再試或直接填表單"},
+                     503: {"model": Error, "description": "伺服器沒設定 GEMINI_API_KEY"},
+                     422: {"description": "不會出現：驗證錯誤一律改回 400"}},
+          summary="把一句需求解析成 /recommend 的欄位，缺的列成補問（Gemini）")
+def parse_text(req: ParseRequest):
+    if not os.environ.get("GEMINI_API_KEY"):
+        return JSONResponse({"error": "伺服器沒設定 GEMINI_API_KEY，請直接填表單"}, status_code=503)
+    try:
+        return parser.parse(req.text)
+    except Exception as e:
+        return JSONResponse({"error": f"需求解析失敗（{type(e).__name__}），請稍後再試或直接填表單"}, status_code=502)
+
+
 def proto_args(req):
     from types import SimpleNamespace
     return SimpleNamespace(context=req.context, budget=req.budget,
@@ -282,6 +326,21 @@ def selftest():
     assert post({**good, "origin": [120.68, 24.13]}) == (400, {"error": HINTS["origin"]})   # 經緯度寫反
     assert "晚於現在" in post({**good, "offline": False, "depart": "2020-01-01T10:00"})[1]["error"]
     assert "沒有提到" in post({**good, "context": "火星料理"})[1]["notes"][-1]
+    # /parse：不打 Gemini，換成假的解析結果，只測路由、驗證與回傳格式
+    fake = parser.Parsed(context="慶生", context_quote="慶生", budget_amount=600, budget_scope="每人", budget_quote="600")
+    parser.parse = lambda text: parser.finish(fake, text, datetime(2026, 11, 19, 15, 0))
+    os.environ.setdefault("GEMINI_API_KEY", "selftest")
+    def post_parse(body):
+        req = urllib.request.Request(base + "/parse", json.dumps(body).encode(), {"Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req) as r:
+                return r.status, json.load(r)
+        except urllib.error.HTTPError as e:
+            return e.code, json.load(e)
+    status, pres = post_parse({"text": "慶生 每人600"})
+    assert status == 200 and pres["request"] == {"context": "慶生", "budget": 600}, pres
+    assert not pres["ready"] and pres["questions"][0]["field"] == "depart"
+    assert post_parse({"text": ""}) == (400, {"error": HINTS["text"]})
     with urllib.request.urlopen(base + "/health") as r:
         assert json.load(r)["ok"]
     with urllib.request.urlopen(base + "/openapi.json") as r:

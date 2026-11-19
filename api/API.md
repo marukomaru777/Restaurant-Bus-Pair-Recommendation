@@ -9,7 +9,7 @@ python server.py                  # http://127.0.0.1:8000
 ```
 
 - 需要 Python 3.11 以上。
-- 不是離線模式時要查 TDX，所以 repo 根目錄 `.env` 要有 TDX 金鑰（範本 `.env.example`）。
+- 不是離線模式時要查 TDX，所以 repo 根目錄 `.env` 要有 TDX 金鑰（範本 `.env.example`）。`/parse` 另外要 `GEMINI_API_KEY`。
 - **http://127.0.0.1:8000/docs**：Swagger 文件，每個欄位都有說明。按「Try it out」就能直接送請求看回傳，**建議先從這裡開始**。
 - http://127.0.0.1:8000 是**示範頁**（`api/demo.html`），正式畫面照它改。
 - 已開放跨來源（CORS），前端開發伺服器在別的 port（例如 Vite 的 5173）也能直接呼叫。
@@ -139,6 +139,35 @@ python server.py                  # http://127.0.0.1:8000
 | 400 | 欄位缺漏或格式錯 | `{"error": "budget（每人預算，元）要是正整數"}`，可以直接顯示給使用者 |
 | 404 | 路徑錯誤 | `{"error": "…"}` |
 | 500 | 伺服器錯誤 | `{"error": "伺服器錯誤：…"}` |
+
+## `POST /parse`（可選：一句話輸入）
+
+讓使用者打一句話，例如「明天晚上七點跟女友慶生，兩個人預算一千五」，後端用 Gemini 解析成 `/recommend` 的欄位。**不想做這個也沒關係，表單照樣能用。**
+
+```json
+{ "text": "明天晚上七點跟女友慶生，兩個人預算一千五" }
+```
+
+回應：
+
+```json
+{
+  "request": { "context": "慶生", "budget": 750, "depart": "2026-11-20T19:00" },
+  "tags": { "occasions": ["慶生"], "companions": ["情侶"], "aspects": [] },
+  "people": 2,
+  "origin_text": null,
+  "questions": [],
+  "ready": true,
+  "notes": ["預算 1500 元是 2 人總共，換算每人 750 元"]
+}
+```
+
+- `request` 只放**確定的**欄位，可以拿來預填表單。`origin` 不會出現，出發地一樣要用定位。
+- `questions` 不是空的，就依序顯示給使用者回答（`question` 可直接顯示）。使用者回答後，**把回答接在原句後面再送一次**，例如 `"原句\n每人"`。後端不記狀態。
+- `ready` 是 `true` 時，`request` 加上 `origin` 就能送 `/recommend`。
+- 預算說「總共」又沒說幾個人、或沒講每人還是總共，會補問，不會亂猜。
+- 每次約 5–15 秒（呼叫 Gemini），畫面要有「解析中」。
+- 錯誤：`400` text 空的或超過 500 字；`502` Gemini 忙線（請使用者稍後再試或直接填表單）；`503` 伺服器沒設 `GEMINI_API_KEY`。
 
 ## 直接複製的範例
 
