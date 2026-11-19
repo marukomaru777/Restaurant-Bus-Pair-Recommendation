@@ -30,15 +30,18 @@ def bigrams(s):
 
 
 def relevance(context, restaurant):
-    """情境詞和評論的字元重疊比例。ponytail: 換成 BM25／向量後介面不變。"""
+    """情境詞和評論、店名的字元重疊比例（取最高）。店名也算，查「湯圓」才找得到「蘇媽媽湯圓」。
+    ponytail: 不用 LLM 給的別名（字幕原文常是整句話，會亂配）；換成 BM25／向量後介面不變。"""
     q = bigrams(context) or {context}
-    best = max((len(q & bigrams(r)) / len(q) for r in restaurant["reviews"]), default=0)
-    return round(best, 2)
+    texts = restaurant["reviews"] + [restaurant["name"]]
+    return round(max(len(q & bigrams(t)) / len(q) for t in texts), 2)
 
 
 def best_review(context, restaurant):
-    q = bigrams(context)
-    return max(restaurant["reviews"], key=lambda r: len(q & bigrams(r)))
+    """最支持情境的評論；沒有任何評論提到（只靠店名對上）時回傳 None，不拿無關評論充當依據。"""
+    q = bigrams(context) or {context}
+    best = max(restaurant["reviews"], key=lambda r: len(q & bigrams(r)), default=None)
+    return best if best and q & bigrams(best) else None
 
 
 # ---------- 2. 公車方案 ----------
@@ -170,7 +173,8 @@ def show(ok, maybe, no, context):
     print("\n== 推薦（全部條件通過）==")
     for i, x in enumerate(ok, 1):
         print(f"{i}. {x['r']['name']}  情境分數 {x['rel']}")
-        print(f"   評論依據：「{best_review(context, x['r'])}」")
+        quote = best_review(context, x["r"])
+        print(f"   評論依據：「{quote}」" if quote else f"   評論依據：無（店名符合「{context}」）")
         print(f"   交通：{describe_route(x['route'])}")
         for k, (st, why) in x["checks"].items():
             print(f"   {k} {st}：{why}")
@@ -208,8 +212,12 @@ def selftest():
     assert check_route(route(walk(300), {"type": "transit"}, walk(400)), 10, dep)[0] == T
     assert check_route(route(walk(300), start="2026-11-20T18:53:18"), 10, dep)[0] == F  # 早於出發時間
     assert combine([T, U, T]) == U and combine([T, U, F]) == F and combine([T, T]) == T  # 有 U 無 F
-    assert relevance("慶生", {"reviews": ["包廂很適合慶生"]}) == 1.0
-    assert relevance("慶生", {"reviews": ["學生聚餐首選"]}) == 0     # 單字「生」不算
+    assert relevance("慶生", {"name": "R", "reviews": ["包廂很適合慶生"]}) == 1.0
+    assert relevance("慶生", {"name": "R", "reviews": ["學生聚餐首選"]}) == 0     # 單字「生」不算
+    tangyuan = {"name": "蘇媽媽湯圓", "reviews": ["皮很Q，湯頭清甜"]}
+    assert relevance("湯圓", tangyuan) == 1.0 and best_review("湯圓", tangyuan) is None   # 只靠店名
+    assert best_review("湯頭", tangyuan) == "皮很Q，湯頭清甜"
+    assert relevance("水餃", {"name": "R", "reviews": []}) == 0
     print("selftest ok")
 
 
