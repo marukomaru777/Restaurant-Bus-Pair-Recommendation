@@ -161,6 +161,6 @@ console.log(data.recommended.map(r => `${r.name}：${r.route?.summary}`));
 
 ## 目前限制
 
-- **出發地只吃經緯度**。地址或地名要先轉成經緯度，可以用瀏覽器的 `navigator.geolocation` 取得目前位置。需要地址輸入的話跟後端說。
+- **出發地只吃經緯度，不要讓使用者自己打**。用瀏覽器的 `navigator.geolocation` 取得目前位置；使用者拒絕定位時，改讓他從常用地點選。寫法照 `demo.html` 的 `myLocation()`。定位只在 **https 或 localhost** 能用。需要輸入地址的話跟後端說。
 - **情境是字面比對**：`context` 用語料裡的說法比較容易對到，例如 `慶生`、`約會`、`聚餐`、`水餃`。
 - 伺服器一次只處理一個請求，因為 TDX 免費額度的限制，所以不適合多人同時測。

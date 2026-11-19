@@ -20,10 +20,21 @@
 <body>
 <h1>推薦 API 示範</h1>
 <form id="f">
-  <label for="context">用餐情境</label><input id="context" value="慶生" required>
+  <label for="context">用餐情境</label><input id="context" value="古早味" required>
   <label for="budget">每人預算（元）</label><input id="budget" type="number" value="600" min="1" required>
   <label for="depart">出發時間</label><input id="depart" type="datetime-local" required>
-  <label for="origin">出發地（緯度,經度）</label><input id="origin" value="24.1372,120.6869" required>
+  <label for="origin">出發地</label>
+  <div>
+    <select id="origin">
+      <option value="me">📍 我的目前位置</option>
+      <option value="24.1372,120.6869">臺中車站</option>
+      <option value="24.1510,120.6635">勤美誠品</option>
+      <option value="24.1440,120.6620">審計新村</option>
+      <option value="24.1496,120.6853">一中街</option>
+      <option value="24.1797,120.6462">逢甲夜市</option>
+    </select>
+    <span id="loc" class="muted"></span>
+  </div>
   <label for="offline">離線模式</label><label><input id="offline" type="checkbox" checked> 不查 TDX（馬上回、交通是假的）</label>
   <button>查詢</button>
 </form>
@@ -36,9 +47,33 @@ const $ = id => document.getElementById(id);
 const d = new Date(Date.now() + 86400000); d.setHours(19, 0, 0, 0);   // 預設：明天 19:00
 $("depart").value = new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
+// 出發地：預設抓瀏覽器定位（使用者要按「允許」）；拒絕或失敗就請他改選常用地點
+// 注意：定位只在 https 或 localhost 能用，部署上雲時要用 https
+function myLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error("這個瀏覽器不支援定位"));
+    navigator.geolocation.getCurrentPosition(
+      p => resolve([p.coords.latitude, p.coords.longitude]),
+      err => reject(new Error(err.code === err.PERMISSION_DENIED ? "你拒絕了定位權限" : "抓不到位置")),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+  });
+}
+
+async function origin() {
+  if ($("origin").value !== "me") return $("origin").value.split(",").map(Number);
+  $("loc").textContent = "定位中…";
+  const [lat, lng] = await myLocation();
+  $("loc").textContent = `（${lat.toFixed(4)}, ${lng.toFixed(4)}）`;
+  return [lat, lng];
+}
+
+$("origin").onchange = () => { $("loc").textContent = ""; };
+
 $("f").onsubmit = async e => {
   e.preventDefault();
-  const [lat, lng] = $("origin").value.split(",").map(Number);
+  let lat, lng;
+  try { [lat, lng] = await origin(); }
+  catch (err) { $("loc").textContent = ""; $("status").textContent = `${err.message}，請從「出發地」改選一個地點`; return; }
   const body = { context: $("context").value, budget: Number($("budget").value), depart: $("depart").value,
                  origin: [lat, lng], offline: $("offline").checked };
   $("status").textContent = body.offline ? "查詢中…" : "查詢中…（真的查 TDX，每家店約 13 秒，請稍候）";
