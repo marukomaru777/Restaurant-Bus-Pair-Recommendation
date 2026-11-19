@@ -108,6 +108,31 @@ def check_hours(hours, arrive, meal_min, closed=()):
     return F, f"{arrive:%H:%M} 到、{leave:%H:%M} 吃完，不在營業時段 {spans} 內"
 
 
+def precheck_hours(hours, depart, meal_min, closed=()):
+    """查公車前的粗篩（模組 6）：還不知道幾點到，但到店一定在 depart 之後、max_travel_min 之內。
+    這段時間內不管幾點到都吃不完才判 F；可能來得及就回 U，交給查完公車後的 check_hours。
+    ponytail: 公休日看出發當天，深夜出發、隔天才到的情況不處理。"""
+    if not hours:
+        return U, "缺營業時間"
+    if depart.weekday() in closed:
+        return F, f"週{WEEK[depart.weekday()]}公休"
+    latest = depart + timedelta(minutes=setting("defaults", "max_travel_min"))
+    at = lambda h: datetime.combine(depart.date(), datetime.strptime(h.replace("24:00", "00:00"), "%H:%M").time())
+    not_open_yet = True
+    for o, c in hours:
+        open_t, close_t = at(o), at(c)
+        if close_t <= open_t:
+            close_t += timedelta(days=1)
+        earliest = max(depart, open_t)
+        if earliest <= latest and earliest + timedelta(minutes=meal_min) <= close_t:
+            return U, "營業時段內來得及，待查公車"
+        not_open_yet &= open_t > latest
+    spans = "、".join(f"{o}–{c}" for o, c in hours)
+    if not_open_yet:
+        return F, f"{depart:%H:%M} 出發，{setting('defaults', 'max_travel_min') // 60} 小時內到店都還沒開（{spans}）"
+    return F, f"{depart:%H:%M} 出發，來不及在打烊前用餐 {meal_min} 分鐘（{spans}）"
+
+
 def check_route(route, walk_min, depart):
     # 實測：depart=19:00 時 TDX 仍可能回傳 18:53 出發的方案，不能只信任參數
     start = datetime.fromisoformat(route["start_time"])
@@ -131,9 +156,18 @@ def combine(states):
 def recommend(args, restaurants, get_plans):
     depart = datetime.fromisoformat(args.depart)
     # 情境完全不相符的店不進候選，交通再好也不推薦（D002：先情境、後交通）
-    cands = sorted((r for r in restaurants if relevance(args.context, r) > 0),
-                   key=lambda r: -relevance(args.context, r))[:args.k]
-    results = []
+    relevant = sorted((r for r in restaurants if relevance(args.context, r) > 0),
+                      key=lambda r: -relevance(args.context, r))
+    results, cands = [], []
+    # 模組 6 粗篩：預算、營業已確定不符的不查 TDX（每家省 13 秒），也不佔召回名額 K
+    for r in relevant:
+        budget = check_budget(r["price"], args.budget)
+        hours = precheck_hours(r["hours"], depart, args.meal, r.get("closed_weekdays", ()))
+        if F in (budget[0], hours[0]):
+            results.append(dict(r=r, rel=relevance(args.context, r), state=F,
+                                checks={"預算": budget, "交通": (U, "未查（其他條件已不符）"), "營業": hours}))
+        elif len(cands) < args.k:
+            cands.append(r)
     for r in cands:
         rel = relevance(args.context, r)
         budget = check_budget(r["price"], args.budget)
@@ -204,6 +238,25 @@ def selftest():
     assert check_hours([["17:00", "00:00"]], arrive, 90)[0] == T                       # 跨午夜
     assert check_hours([["17:00", "24:00"]], arrive, 90)[0] == T
     assert check_hours([["11:00", "22:00"]], arrive, 90, closed=[4])[0] == F           # 2026-11-20 是週五
+    # 粗篩：19:00 出發，只有確定來不及的才 F
+    dep19 = datetime(2026, 11, 20, 19, 0)
+    assert precheck_hours([["05:30", "11:30"]], dep19, 90)[0] == F                     # 早餐店已打烊
+    assert precheck_hours([["11:00", "20:00"]], dep19, 90)[0] == F                     # 19:00 出發吃不完 90 分
+    assert precheck_hours([["11:00", "21:00"]], dep19, 90)[0] == U                     # 可能來得及 → 查公車
+    assert precheck_hours([["11:30", "14:00"], ["17:30", "21:00"]], dep19, 90)[0] == U
+    assert precheck_hours([["17:00", "00:00"]], dep19, 90)[0] == U                     # 跨午夜
+    assert precheck_hours([["11:00", "22:00"]], dep19, 90, closed=[4])[0] == F         # 公休
+    assert precheck_hours(None, dep19, 90)[0] == U
+    assert precheck_hours([["23:30", "02:00"]], dep19, 90)[0] == F                     # 晚於最長車程才開
+    assert "還沒開" in precheck_hours([["11:30", "14:00"]], datetime(2026, 11, 20, 8, 0), 90)[1]
+    assert "來不及" in precheck_hours([["11:00", "20:00"]], dep19, 90)[1]
+    # 粗篩不呼叫 TDX：只有早餐店時 get_plans 一次都不會被叫到
+    calls = []
+    args = argparse.Namespace(context="湯包", budget=300, depart="2026-11-20T19:00", origin="24.13,120.68", walk=10, meal=90, k=5)
+    shop = {"id": "B", "name": "湯包早餐", "lat": 24.13, "lng": 120.68, "price": None,
+            "hours": [["05:30", "11:30"]], "closed_weekdays": [], "reviews": ["湯包很好吃"]}
+    ok_, maybe_, no_ = recommend(args, [shop], lambda *a: calls.append(a) or [])
+    assert not calls and not ok_ and not maybe_ and no_[0]["checks"]["營業"][0] == F
     walk = lambda d: {"type": "pedestrian", "travelSummary": {"duration": d}}
     dep = datetime(2026, 11, 20, 19, 0)
     route = lambda *secs, start="2026-11-20T19:02:00": {"start_time": start, "sections": list(secs)}

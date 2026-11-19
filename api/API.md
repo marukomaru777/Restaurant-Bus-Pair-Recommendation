@@ -126,7 +126,7 @@ python server.py                  # http://127.0.0.1:8000
 | `hours` | 當天營業時段，可能有多段；打烊早於開店表示營業到隔天 |
 | `closed_weekdays` | 公休日，`0`＝週一、`6`＝週日 |
 | `checks.*.reason` | 給使用者看的判定理由，請照原文顯示 |
-| `route` | 公車方案；查不到時是 `null`（看 `checks.transit.reason`） |
+| `route` | 公車方案；查不到時是 `null`（看 `checks.transit.reason`）。預算或營業已確定不符的店**不會去查公車**（省時間），`route` 是 `null`、`checks.transit.reason` 是「未查（其他條件已不符）」 |
 | `route.sections` | 依序的每一段：`walk` 走路、`bus` 公車（`bus` 路線號、`headsign` 往哪個方向）。要畫地圖就用 `from_location` → `to_location` 連線 |
 | `sources` | 資料來源影片，可以做成「看原影片」連結 |
 

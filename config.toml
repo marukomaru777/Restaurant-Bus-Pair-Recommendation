@@ -10,6 +10,7 @@ request_interval_sec = 13   # 免費方案每分鐘 5 次
 meal_min = 90   # 使用者沒給用餐時長時的假設值（輸出要標示為假設）
 walk_min = 10   # 單段步行上限（分）
 recall_k = 5    # 情境召回幾家
+max_travel_min = 180  # 粗篩假設的最長車程（分）：出發後這段時間內到店都來不及用餐的店，不查公車就判不通過
 max_results = 3 # 最多推薦幾家
 
 [llm]
