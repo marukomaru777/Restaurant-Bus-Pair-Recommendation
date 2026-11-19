@@ -190,6 +190,8 @@ def show(ok, maybe, no, context):
     print("\n== 推薦（全部條件通過）==")
     for i, x in enumerate(ok, 1):
         print(f"{i}. {x['r']['name']}  情境分數 {x['rel']}")
+        if x.get("explanation"):
+            print(f"   說明（{x['explanation_source']}）：{x['explanation']}")
         quote = x["quote"]
         print(f"   評論依據：「{quote}」" if quote else f"   評論依據：無（店名符合「{context}」）")
         print(f"   交通：{describe_route(x['route'])}")
@@ -268,6 +270,8 @@ def main():
     args = p.parse_args()
     data = json.loads(Path(args.data).read_text(encoding="utf-8"))["restaurants"]
     ok, maybe, no, notes = recommend(args, data, plans_offline if args.offline else plans_online)
+    import explain
+    notes += explain.explain(ok, args.context, use_llm=not args.offline)
     for n in notes:
         print("※", n)
     show(ok, maybe, no, args.context)

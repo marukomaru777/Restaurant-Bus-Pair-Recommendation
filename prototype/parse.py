@@ -132,29 +132,44 @@ def now_taipei():
     return datetime.now(TAIPEI).replace(tzinfo=None, second=0, microsecond=0)
 
 
-def parse(text, now=None, client=None):
-    """呼叫 Gemini 解析一句需求。補問的回答請接在原句後面再呼叫一次（例如 原句 + "\\n" + 回答），不用存狀態。"""
+def gemini_error(e):
+    """給使用者看的失敗原因。"""
+    msg = str(e)
+    if "PerDay" in msg:
+        return "Gemini 今日免費額度已用完，太平洋時間午夜重置（臺灣下午 3 或 4 點）"
+    if any(c in msg for c in ("503", "UNAVAILABLE", "504", "DEADLINE")):
+        return "Gemini 忙線"
+    return type(e).__name__
+
+
+def gemini_json(system, prompt, schema):
+    """呼叫 Gemini 並照 schema（Pydantic 模型）回傳 JSON；忙線（503）、每分鐘額度（429）等一下重試，其他錯誤直接丟出。
+    parse.py 與 explain.py 共用。"""
+    import time
     from google import genai
     from google.genai import types
-    now = now or now_taipei()
-    client = client or genai.Client(api_key=secret("GEMINI_API_KEY"), http_options=types.HttpOptions(timeout=30_000))
+    client = genai.Client(api_key=secret("GEMINI_API_KEY"), http_options=types.HttpOptions(timeout=30_000))
     config = types.GenerateContentConfig(
-        system_instruction=SYSTEM_INSTRUCTION,
+        system_instruction=system,
         thinking_config=types.ThinkingConfig(thinking_budget=512),
         response_mime_type="application/json",
-        response_schema=Parsed,
+        response_schema=schema,
     )
-    prompt = f"現在時間：{now:%Y-%m-%d %H:%M}（週{WEEK[now.weekday()]}，臺灣時間）\n使用者需求：{text}"
-    for attempt in range(4):   # 503 忙線、429 每分鐘額度：等一下重試；每日額度用完（PerDay）重試沒用
+    for attempt in range(4):   # 每日額度用完（PerDay）重試沒用
         try:
             resp = client.models.generate_content(model=setting("llm", "model"), contents=prompt, config=config)
-            break
+            return schema.model_validate_json(resp.text)
         except Exception as e:
             if attempt == 3 or "PerDay" in str(e) or not any(c in str(e) for c in ("503", "429", "UNAVAILABLE")):
                 raise
-            import time
             time.sleep(2 ** attempt * 2)
-    return finish(Parsed.model_validate_json(resp.text), text, now)
+
+
+def parse(text, now=None):
+    """呼叫 Gemini 解析一句需求。補問的回答請接在原句後面再呼叫一次（例如 原句 + "\\n" + 回答），不用存狀態。"""
+    now = now or now_taipei()
+    prompt = f"現在時間：{now:%Y-%m-%d %H:%M}（週{WEEK[now.weekday()]}，臺灣時間）\n使用者需求：{text}"
+    return finish(gemini_json(SYSTEM_INSTRUCTION, prompt, Parsed), text, now)
 
 
 def selftest():

@@ -89,6 +89,8 @@ python server.py                  # http://127.0.0.1:8000
   "lat": 24.151, "lng": 120.6635,
   "state": "T",
   "relevance": 1.0,
+  "explanation": "示意餐廳 A 的包廂「很適合慶生」，搭 309 約 24 分鐘、19:23 到店，每人 450–580 元在預算內。",
+  "explanation_source": "llm",
   "evidence": "包廂很適合慶生，店家會幫忙準備蛋糕",
   "counter_evidence": [],
   "price": [450, 580],
@@ -120,6 +122,8 @@ python server.py                  # http://127.0.0.1:8000
 | 欄位 | 說明 |
 |---|---|
 | `state` | `T` 全部通過、`U` 有條件查不到、`F` 有條件不符合 |
+| `explanation` | 推薦說明，可直接顯示。**只有 `recommended` 有**，其他組是 `null`，請改顯示 `checks.*.reason` |
+| `explanation_source` | `llm`：Gemini 寫的，已由程式查核數字、時間、路線號與「」引文都出自紀錄；`template`：固定模板（離線模式、Gemini 失敗或查核沒過） |
 | `evidence` | 支持這個情境的原文引文，例如影片裡怎麼說，建議顯示成引號。開頭的 `【面向｜標籤】` 是標籤，可以拆開來顯示成標籤徽章 |
 | `counter_evidence` | 負評（反證），例如「口味稍微偏鹹」，可以收合顯示 |
 | `price` | `[最低, 最高]` 或 `null`（查不到） |

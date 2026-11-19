@@ -24,6 +24,7 @@ from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, field_
 HERE = Path(__file__).parent
 ROOT = HERE.parent
 sys.path[:0] = [str(ROOT), str(ROOT / "prototype")]
+import explain  # noqa: E402
 import parse as parser  # noqa: E402
 import proto  # noqa: E402
 from settings import setting  # noqa: E402
@@ -137,6 +138,8 @@ class Restaurant(BaseModel):
     lng: float
     state: State = Field(description="T 全部通過、U 有條件查不到、F 有條件不符合")
     relevance: float = Field(description="情境符合程度 0–1")
+    explanation: Optional[str] = Field(None, description="推薦說明，可直接顯示；只有 recommended 有，其他組是 null")
+    explanation_source: Optional[Literal["llm", "template"]] = Field(None, description="llm：Gemini 寫且通過事實查核；template：固定模板（離線、失敗或查核沒過）")
     evidence: Optional[str] = Field(None, description="支持情境的原文引文；開頭【面向｜標籤】可拆成徽章")
     counter_evidence: List[str] = Field(default_factory=list, description="負評（反證）")
     price: Optional[List[int]] = Field(None, description="[最低, 最高]；null 為查不到")
@@ -211,6 +214,7 @@ def item_json(x):
     return {
         "id": r["id"], "name": r["name"], "address": r.get("address"), "lat": r["lat"], "lng": r["lng"],
         "state": x["state"], "relevance": x["rel"],
+        "explanation": x.get("explanation"), "explanation_source": x.get("explanation_source"),
         "evidence": x["quote"],
         "counter_evidence": r.get("counter", []), "price": r.get("price"), "hours": r.get("hours"),
         "closed_weekdays": r.get("closed_weekdays", []), "checks": checks,
@@ -253,6 +257,7 @@ def recommend(req: RecommendRequest):
     args = proto_args(req)
     restaurants = json.loads(data_path().read_text(encoding="utf-8"))["restaurants"]
     ok, maybe, no, found = proto.recommend(args, restaurants, proto.plans_offline if req.offline else proto.plans_online)
+    found += explain.explain(ok, req.context, use_llm=not req.offline)   # offline 不呼叫 Gemini，用固定模板
     notes = found + (["offline：所有店套用同一份路線樣本，交通結果不是真的"] if req.offline else []) \
         + ([f"用餐時長未指定，假設 {req.meal_min} 分鐘"] if "meal_min" not in req.model_fields_set else []) \
         + ([] if ok or maybe or no else [f"語料裡沒有提到「{req.context}」的餐廳，換個說法或等語料擴充"])
@@ -278,7 +283,7 @@ def parse_text(req: ParseRequest):
     try:
         return parser.parse(req.text)
     except Exception as e:
-        return JSONResponse({"error": f"需求解析失敗（{type(e).__name__}），請稍後再試或直接填表單"}, status_code=502)
+        return JSONResponse({"error": f"需求解析失敗（{parser.gemini_error(e)}），請稍後再試或直接填表單"}, status_code=502)
 
 
 def proto_args(req):
@@ -320,6 +325,7 @@ def selftest():
     assert res["recommended"] and res["uncertain"], res   # 示意資料：A 推薦；C 缺價格、D 跨預算 → 不確定
     for x in res["recommended"]:
         assert x["checks"]["budget"]["state"] == "T" and x["evidence"]
+        assert x["explanation_source"] == "template" and x["explanation"].startswith(x["name"])   # offline → 模板
         assert "from" in x["route"]["sections"][1] and x["route"]["sections"][1]["bus"]   # 欄位名是 from，不是 from_
     assert res["request"]["origin"] == [24.1372, 120.6869] and res["request"]["meal_min"] == 90
     assert "假設 90 分鐘" in " ".join(res["notes"])

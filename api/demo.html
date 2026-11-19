@@ -134,7 +134,8 @@ $("f").onsubmit = async e => {
       card.innerHTML = `<strong></strong><div class="muted"></div><p></p><ul></ul>`;
       card.querySelector("strong").textContent = r.name;
       card.querySelector(".muted").textContent = r.address || "";
-      card.querySelector("p").textContent = (r.evidence ? `「${r.evidence}」` : "") + (r.route ? `\n${r.route.summary}` : "");
+      // 推薦區有 explanation（Gemini 寫並通過查核，或固定模板）；其他組顯示引文＋路線
+      card.querySelector("p").textContent = r.explanation || ((r.evidence ? `「${r.evidence}」` : "") + (r.route ? `\n${r.route.summary}` : ""));
       for (const c of checks) { const li = document.createElement("li"); li.textContent = c; card.querySelector("ul").append(li); }
       $("out").append(card);
     }
