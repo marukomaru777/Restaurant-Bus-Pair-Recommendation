@@ -1,0 +1,1047 @@
+{
+ "_note": "UI 開發用資料。all_kinds／budget_low／no_candidates 為 2026-11-20 以 offline 模式實測 /recommend 的回應（店家為示意資料）；tdx_429、rich 為依程式與 API.md 推導的手寫樣本（標 _derived）。格式見 api/API.md。",
+ "default_query": {
+  "context": "慶生",
+  "budget": 600
+ },
+ "scenarios": {
+  "all_kinds": {
+   "request": {
+    "context": "慶生",
+    "budget": 600,
+    "depart": "2026-11-20T19:00",
+    "origin": [
+     24.1372,
+     120.6869
+    ],
+    "offline": true,
+    "meal_min": 90,
+    "walk_min": 10,
+    "recall_k": 5
+   },
+   "recommended": [
+    {
+     "id": "R1",
+     "name": "示意餐廳 A（勤美）",
+     "address": null,
+     "lat": 24.151,
+     "lng": 120.6635,
+     "state": "T",
+     "relevance": 0.32,
+     "explanation": "示意餐廳 A（勤美）：影片提到「包廂很適合慶生，店家會幫忙準備蛋糕」；走 1 分，19:01 搭 309 到 中正國小(專用道)，走 8 分（19:23 到店，0 次轉乘）；450–580 元，在 600 元內；19:23 到、20:53 吃完，21:30 打烊前。",
+     "explanation_source": "template",
+     "evidence": "包廂很適合慶生，店家會幫忙準備蛋糕",
+     "counter_evidence": [],
+     "price": [
+      450,
+      580
+     ],
+     "hours": [
+      [
+       "11:30",
+       "21:30"
+      ]
+     ],
+     "closed_weekdays": [],
+     "checks": {
+      "budget": {
+       "state": "T",
+       "reason": "450–580 元，在 600 元內"
+      },
+      "transit": {
+       "state": "T",
+       "reason": "全程公車＋步行"
+      },
+      "hours": {
+       "state": "T",
+       "reason": "19:23 到、20:53 吃完，21:30 打烊前"
+      }
+     },
+     "route": {
+      "depart": "2026-11-20T19:00:00",
+      "arrive": "2026-11-20T19:23:32",
+      "travel_min": 24,
+      "transfers": 0,
+      "fare": 18,
+      "summary": "走 1 分，19:01 搭 309 到 中正國小(專用道)，走 8 分（19:23 到店，0 次轉乘）",
+      "sections": [
+       {
+        "type": "walk",
+        "minutes": 1,
+        "depart": "2026-11-20T19:00:00",
+        "arrive": "2026-11-20T19:01:17",
+        "from": null,
+        "to": "臺中車站(A月台)",
+        "from_location": {
+         "lat": 24.137199,
+         "lng": 120.686897
+        },
+        "to_location": {
+         "lat": 24.137749,
+         "lng": 120.686462
+        },
+        "bus": null,
+        "headsign": null
+       },
+       {
+        "type": "bus",
+        "minutes": 14,
+        "depart": "2026-11-20T19:01:17",
+        "arrive": "2026-11-20T19:15:17",
+        "from": "臺中車站(A月台)",
+        "to": "中正國小(專用道)",
+        "from_location": {
+         "lat": 24.137749,
+         "lng": 120.686462
+        },
+        "to_location": {
+         "lat": 24.152529,
+         "lng": 120.667992
+        },
+        "bus": "309",
+        "headsign": "梧棲觀光漁港"
+       },
+       {
+        "type": "walk",
+        "minutes": 8,
+        "depart": "2026-11-20T19:15:17",
+        "arrive": "2026-11-20T19:23:32",
+        "from": "中正國小(專用道)",
+        "to": null,
+        "from_location": {
+         "lat": 24.152529,
+         "lng": 120.667992
+        },
+        "to_location": {
+         "lat": 24.150999,
+         "lng": 120.663498
+        },
+        "bus": null,
+        "headsign": null
+       }
+      ]
+     },
+     "sources": []
+    }
+   ],
+   "uncertain": [
+    {
+     "id": "R4",
+     "name": "示意餐廳 D（逢甲）",
+     "address": null,
+     "lat": 24.1797,
+     "lng": 120.6462,
+     "state": "U",
+     "relevance": 0.37,
+     "explanation": null,
+     "explanation_source": null,
+     "evidence": "生日會送甜點，慶生很有氣氛",
+     "counter_evidence": [],
+     "price": [
+      500,
+      900
+     ],
+     "hours": [
+      [
+       "17:00",
+       "22:00"
+      ]
+     ],
+     "closed_weekdays": [],
+     "checks": {
+      "budget": {
+       "state": "U",
+       "reason": "500–900 元跨過預算 600 元"
+      },
+      "transit": {
+       "state": "T",
+       "reason": "全程公車＋步行"
+      },
+      "hours": {
+       "state": "T",
+       "reason": "19:23 到、20:53 吃完，22:00 打烊前"
+      }
+     },
+     "route": {
+      "depart": "2026-11-20T19:00:00",
+      "arrive": "2026-11-20T19:23:32",
+      "travel_min": 24,
+      "transfers": 0,
+      "fare": 18,
+      "summary": "走 1 分，19:01 搭 309 到 中正國小(專用道)，走 8 分（19:23 到店，0 次轉乘）",
+      "sections": [
+       {
+        "type": "walk",
+        "minutes": 1,
+        "depart": "2026-11-20T19:00:00",
+        "arrive": "2026-11-20T19:01:17",
+        "from": null,
+        "to": "臺中車站(A月台)",
+        "from_location": {
+         "lat": 24.137199,
+         "lng": 120.686897
+        },
+        "to_location": {
+         "lat": 24.137749,
+         "lng": 120.686462
+        },
+        "bus": null,
+        "headsign": null
+       },
+       {
+        "type": "bus",
+        "minutes": 14,
+        "depart": "2026-11-20T19:01:17",
+        "arrive": "2026-11-20T19:15:17",
+        "from": "臺中車站(A月台)",
+        "to": "中正國小(專用道)",
+        "from_location": {
+         "lat": 24.137749,
+         "lng": 120.686462
+        },
+        "to_location": {
+         "lat": 24.152529,
+         "lng": 120.667992
+        },
+        "bus": "309",
+        "headsign": "梧棲觀光漁港"
+       },
+       {
+        "type": "walk",
+        "minutes": 8,
+        "depart": "2026-11-20T19:15:17",
+        "arrive": "2026-11-20T19:23:32",
+        "from": "中正國小(專用道)",
+        "to": null,
+        "from_location": {
+         "lat": 24.152529,
+         "lng": 120.667992
+        },
+        "to_location": {
+         "lat": 24.150999,
+         "lng": 120.663498
+        },
+        "bus": null,
+        "headsign": null
+       }
+      ]
+     },
+     "sources": []
+    },
+    {
+     "id": "R3",
+     "name": "示意餐廳 C（審計新村）",
+     "address": null,
+     "lat": 24.144,
+     "lng": 120.662,
+     "state": "U",
+     "relevance": 0.33,
+     "explanation": null,
+     "explanation_source": null,
+     "evidence": "燈光美氣氛佳，約會和慶生都很適合",
+     "counter_evidence": [],
+     "price": null,
+     "hours": [
+      [
+       "11:00",
+       "21:00"
+      ]
+     ],
+     "closed_weekdays": [],
+     "checks": {
+      "budget": {
+       "state": "U",
+       "reason": "查不到價格"
+      },
+      "transit": {
+       "state": "T",
+       "reason": "全程公車＋步行"
+      },
+      "hours": {
+       "state": "T",
+       "reason": "19:23 到、20:53 吃完，21:00 打烊前"
+      }
+     },
+     "route": {
+      "depart": "2026-11-20T19:00:00",
+      "arrive": "2026-11-20T19:23:32",
+      "travel_min": 24,
+      "transfers": 0,
+      "fare": 18,
+      "summary": "走 1 分，19:01 搭 309 到 中正國小(專用道)，走 8 分（19:23 到店，0 次轉乘）",
+      "sections": [
+       {
+        "type": "walk",
+        "minutes": 1,
+        "depart": "2026-11-20T19:00:00",
+        "arrive": "2026-11-20T19:01:17",
+        "from": null,
+        "to": "臺中車站(A月台)",
+        "from_location": {
+         "lat": 24.137199,
+         "lng": 120.686897
+        },
+        "to_location": {
+         "lat": 24.137749,
+         "lng": 120.686462
+        },
+        "bus": null,
+        "headsign": null
+       },
+       {
+        "type": "bus",
+        "minutes": 14,
+        "depart": "2026-11-20T19:01:17",
+        "arrive": "2026-11-20T19:15:17",
+        "from": "臺中車站(A月台)",
+        "to": "中正國小(專用道)",
+        "from_location": {
+         "lat": 24.137749,
+         "lng": 120.686462
+        },
+        "to_location": {
+         "lat": 24.152529,
+         "lng": 120.667992
+        },
+        "bus": "309",
+        "headsign": "梧棲觀光漁港"
+       },
+       {
+        "type": "walk",
+        "minutes": 8,
+        "depart": "2026-11-20T19:15:17",
+        "arrive": "2026-11-20T19:23:32",
+        "from": "中正國小(專用道)",
+        "to": null,
+        "from_location": {
+         "lat": 24.152529,
+         "lng": 120.667992
+        },
+        "to_location": {
+         "lat": 24.150999,
+         "lng": 120.663498
+        },
+        "bus": null,
+        "headsign": null
+       }
+      ]
+     },
+     "sources": []
+    }
+   ],
+   "rejected": [],
+   "notes": [
+    "offline：所有店套用同一份路線樣本，交通結果不是真的"
+   ],
+   "data": "prototype/restaurants.json"
+  },
+  "budget_low": {
+   "request": {
+    "context": "慶生",
+    "budget": 200,
+    "depart": "2026-11-20T19:00",
+    "origin": [
+     24.1372,
+     120.6869
+    ],
+    "offline": true,
+    "meal_min": 90,
+    "walk_min": 10,
+    "recall_k": 5
+   },
+   "recommended": [],
+   "uncertain": [
+    {
+     "id": "R3",
+     "name": "示意餐廳 C（審計新村）",
+     "address": null,
+     "lat": 24.144,
+     "lng": 120.662,
+     "state": "U",
+     "relevance": 0.33,
+     "explanation": null,
+     "explanation_source": null,
+     "evidence": "燈光美氣氛佳，約會和慶生都很適合",
+     "counter_evidence": [],
+     "price": null,
+     "hours": [
+      [
+       "11:00",
+       "21:00"
+      ]
+     ],
+     "closed_weekdays": [],
+     "checks": {
+      "budget": {
+       "state": "U",
+       "reason": "查不到價格"
+      },
+      "transit": {
+       "state": "T",
+       "reason": "全程公車＋步行"
+      },
+      "hours": {
+       "state": "T",
+       "reason": "19:23 到、20:53 吃完，21:00 打烊前"
+      }
+     },
+     "route": {
+      "depart": "2026-11-20T19:00:00",
+      "arrive": "2026-11-20T19:23:32",
+      "travel_min": 24,
+      "transfers": 0,
+      "fare": 18,
+      "summary": "走 1 分，19:01 搭 309 到 中正國小(專用道)，走 8 分（19:23 到店，0 次轉乘）",
+      "sections": [
+       {
+        "type": "walk",
+        "minutes": 1,
+        "depart": "2026-11-20T19:00:00",
+        "arrive": "2026-11-20T19:01:17",
+        "from": null,
+        "to": "臺中車站(A月台)",
+        "from_location": {
+         "lat": 24.137199,
+         "lng": 120.686897
+        },
+        "to_location": {
+         "lat": 24.137749,
+         "lng": 120.686462
+        },
+        "bus": null,
+        "headsign": null
+       },
+       {
+        "type": "bus",
+        "minutes": 14,
+        "depart": "2026-11-20T19:01:17",
+        "arrive": "2026-11-20T19:15:17",
+        "from": "臺中車站(A月台)",
+        "to": "中正國小(專用道)",
+        "from_location": {
+         "lat": 24.137749,
+         "lng": 120.686462
+        },
+        "to_location": {
+         "lat": 24.152529,
+         "lng": 120.667992
+        },
+        "bus": "309",
+        "headsign": "梧棲觀光漁港"
+       },
+       {
+        "type": "walk",
+        "minutes": 8,
+        "depart": "2026-11-20T19:15:17",
+        "arrive": "2026-11-20T19:23:32",
+        "from": "中正國小(專用道)",
+        "to": null,
+        "from_location": {
+         "lat": 24.152529,
+         "lng": 120.667992
+        },
+        "to_location": {
+         "lat": 24.150999,
+         "lng": 120.663498
+        },
+        "bus": null,
+        "headsign": null
+       }
+      ]
+     },
+     "sources": []
+    }
+   ],
+   "rejected": [
+    {
+     "id": "R4",
+     "name": "示意餐廳 D（逢甲）",
+     "address": null,
+     "lat": 24.1797,
+     "lng": 120.6462,
+     "state": "F",
+     "relevance": 0.37,
+     "explanation": null,
+     "explanation_source": null,
+     "evidence": "生日會送甜點，慶生很有氣氛",
+     "counter_evidence": [],
+     "price": [
+      500,
+      900
+     ],
+     "hours": [
+      [
+       "17:00",
+       "22:00"
+      ]
+     ],
+     "closed_weekdays": [],
+     "checks": {
+      "budget": {
+       "state": "F",
+       "reason": "最低 500 元已超過 200 元"
+      },
+      "transit": {
+       "state": "U",
+       "reason": "未查（其他條件已不符）"
+      },
+      "hours": {
+       "state": "U",
+       "reason": "營業時段內來得及，待查公車"
+      }
+     },
+     "route": null,
+     "sources": []
+    },
+    {
+     "id": "R1",
+     "name": "示意餐廳 A（勤美）",
+     "address": null,
+     "lat": 24.151,
+     "lng": 120.6635,
+     "state": "F",
+     "relevance": 0.32,
+     "explanation": null,
+     "explanation_source": null,
+     "evidence": "包廂很適合慶生，店家會幫忙準備蛋糕",
+     "counter_evidence": [],
+     "price": [
+      450,
+      580
+     ],
+     "hours": [
+      [
+       "11:30",
+       "21:30"
+      ]
+     ],
+     "closed_weekdays": [],
+     "checks": {
+      "budget": {
+       "state": "F",
+       "reason": "最低 450 元已超過 200 元"
+      },
+      "transit": {
+       "state": "U",
+       "reason": "未查（其他條件已不符）"
+      },
+      "hours": {
+       "state": "U",
+       "reason": "營業時段內來得及，待查公車"
+      }
+     },
+     "route": null,
+     "sources": []
+    }
+   ],
+   "notes": [
+    "offline：所有店套用同一份路線樣本，交通結果不是真的"
+   ],
+   "data": "prototype/restaurants.json"
+  },
+  "no_candidates": {
+   "request": {
+    "context": "火星料理",
+    "budget": 600,
+    "depart": "2026-11-20T19:00",
+    "origin": [
+     24.1372,
+     120.6869
+    ],
+    "offline": true,
+    "meal_min": 90,
+    "walk_min": 10,
+    "recall_k": 5
+   },
+   "recommended": [],
+   "uncertain": [],
+   "rejected": [],
+   "notes": [
+    "offline：所有店套用同一份路線樣本，交通結果不是真的",
+    "語料裡沒有提到「火星料理」的餐廳，換個說法或等語料擴充"
+   ],
+   "data": "prototype/restaurants.json"
+  },
+  "tdx_429": {
+   "_derived": "依 proto.py：TDX 失敗時該店 checks 只有預算與交通，server.py 把缺的營業補成 U「未查核」；route 為 null",
+   "request": {
+    "context": "慶生",
+    "budget": 600,
+    "depart": "2026-11-20T19:00",
+    "origin": [
+     24.1372,
+     120.6869
+    ],
+    "offline": false,
+    "meal_min": 90,
+    "walk_min": 10,
+    "recall_k": 5
+   },
+   "recommended": [],
+   "uncertain": [
+    {
+     "id": "R1",
+     "name": "示意餐廳 A（勤美）",
+     "address": null,
+     "lat": 24.151,
+     "lng": 120.6635,
+     "state": "U",
+     "relevance": 0.32,
+     "explanation": null,
+     "explanation_source": null,
+     "evidence": "包廂很適合慶生，店家會幫忙準備蛋糕",
+     "counter_evidence": [],
+     "price": [
+      450,
+      580
+     ],
+     "hours": [
+      [
+       "11:30",
+       "21:30"
+      ]
+     ],
+     "closed_weekdays": [],
+     "checks": {
+      "budget": {
+       "state": "T",
+       "reason": "450–580 元，在 600 元內"
+      },
+      "transit": {
+       "state": "U",
+       "reason": "TDX 查詢失敗 HTTP 429，超過每分鐘 5 次，稍後重跑"
+      },
+      "hours": {
+       "state": "U",
+       "reason": "未查核"
+      }
+     },
+     "route": null,
+     "sources": []
+    }
+   ],
+   "rejected": [],
+   "notes": [],
+   "data": "corpus/restaurants.json"
+  },
+  "rich": {
+   "_derived": "實測樣本的示意資料沒有 sources、address、反證、llm 說明、轉乘；此份依 API.md 欄位說明手寫，用來檢查這些版面",
+   "request": {
+    "context": "慶生",
+    "budget": 600,
+    "depart": "2026-11-20T19:00",
+    "origin": [
+     24.1372,
+     120.6869
+    ],
+    "offline": false,
+    "meal_min": 90,
+    "walk_min": 10,
+    "recall_k": 5
+   },
+   "recommended": [
+    {
+     "id": "V1",
+     "name": "示範小館",
+     "address": "臺中市西區示範路 1 號",
+     "lat": 24.151,
+     "lng": 120.6635,
+     "state": "T",
+     "relevance": 0.74,
+     "explanation": "示範小館的包廂「很適合慶生」，搭 309 約 24 分鐘、19:23 到店，每人 450–580 元在預算內。",
+     "explanation_source": "llm",
+     "evidence": "【用餐氛圍｜慶生】包廂很適合慶生，店家會幫忙準備蛋糕",
+     "counter_evidence": [
+      "假日人多，需要提早訂位"
+     ],
+     "price": [
+      450,
+      580
+     ],
+     "hours": [
+      [
+       "11:30",
+       "21:30"
+      ]
+     ],
+     "closed_weekdays": [],
+     "checks": {
+      "budget": {
+       "state": "T",
+       "reason": "450–580 元，在 600 元內"
+      },
+      "transit": {
+       "state": "T",
+       "reason": "全程公車＋步行"
+      },
+      "hours": {
+       "state": "T",
+       "reason": "19:23 到、20:53 吃完，21:30 打烊前"
+      }
+     },
+     "route": {
+      "depart": "2026-11-20T19:00:00",
+      "arrive": "2026-11-20T19:23:32",
+      "travel_min": 24,
+      "transfers": 0,
+      "fare": 18,
+      "summary": "走 1 分，19:01 搭 309 到 中正國小(專用道)，走 8 分（19:23 到店，0 次轉乘）",
+      "sections": [
+       {
+        "type": "walk",
+        "minutes": 1,
+        "depart": "2026-11-20T19:00:00",
+        "arrive": "2026-11-20T19:01:17",
+        "from": null,
+        "to": "臺中車站(A月台)",
+        "from_location": {
+         "lat": 24.137199,
+         "lng": 120.686897
+        },
+        "to_location": {
+         "lat": 24.137749,
+         "lng": 120.686462
+        },
+        "bus": null,
+        "headsign": null
+       },
+       {
+        "type": "bus",
+        "minutes": 14,
+        "depart": "2026-11-20T19:01:17",
+        "arrive": "2026-11-20T19:15:17",
+        "from": "臺中車站(A月台)",
+        "to": "中正國小(專用道)",
+        "from_location": {
+         "lat": 24.137749,
+         "lng": 120.686462
+        },
+        "to_location": {
+         "lat": 24.152529,
+         "lng": 120.667992
+        },
+        "bus": "309",
+        "headsign": "梧棲觀光漁港"
+       },
+       {
+        "type": "walk",
+        "minutes": 8,
+        "depart": "2026-11-20T19:15:17",
+        "arrive": "2026-11-20T19:23:32",
+        "from": "中正國小(專用道)",
+        "to": null,
+        "from_location": {
+         "lat": 24.152529,
+         "lng": 120.667992
+        },
+        "to_location": {
+         "lat": 24.150999,
+         "lng": 120.663498
+        },
+        "bus": null,
+        "headsign": null
+       }
+      ]
+     },
+     "sources": [
+      {
+       "video": "https://www.youtube.com/watch?v=EXAMPLE1",
+       "published_at": "2025-05-28",
+       "transcript_source": "人工字幕"
+      },
+      {
+       "video": "https://www.youtube.com/watch?v=EXAMPLE2",
+       "published_at": "2025-09-03",
+       "transcript_source": "Whisper"
+      }
+     ]
+    },
+    {
+     "id": "V2",
+     "name": "示範食堂",
+     "address": null,
+     "lat": 24.144,
+     "lng": 120.662,
+     "state": "T",
+     "relevance": 0.58,
+     "explanation": "示範食堂燈光美氣氛佳，搭 5、75 約 31 分鐘、19:31 到店，每人 300–480 元在預算內。",
+     "explanation_source": "llm",
+     "evidence": "【用餐氛圍｜慶生】燈光美氣氛佳，慶生很適合",
+     "counter_evidence": [],
+     "price": [
+      300,
+      480
+     ],
+     "hours": [
+      [
+       "11:00",
+       "22:00"
+      ]
+     ],
+     "closed_weekdays": [],
+     "checks": {
+      "budget": {
+       "state": "T",
+       "reason": "300–480 元，在 600 元內"
+      },
+      "transit": {
+       "state": "T",
+       "reason": "全程公車＋步行"
+      },
+      "hours": {
+       "state": "T",
+       "reason": "19:31 到、21:01 吃完，22:00 打烊前"
+      }
+     },
+     "route": {
+      "depart": "2026-11-20T19:00:00",
+      "arrive": "2026-11-20T19:31:00",
+      "travel_min": 31,
+      "transfers": 1,
+      "fare": 36,
+      "summary": "走 4 分，19:04 搭 5 到 示意轉乘站，19:19 搭 75 到 示意站 2，走 3 分（19:31 到店，1 次轉乘）",
+      "sections": [
+       {
+        "type": "walk",
+        "minutes": 4,
+        "depart": "2026-11-20T19:00:00",
+        "arrive": "2026-11-20T19:04:00",
+        "from": null,
+        "to": "示意站 1",
+        "from_location": {
+         "lat": 24.1372,
+         "lng": 120.6869
+        },
+        "to_location": {
+         "lat": 24.138,
+         "lng": 120.685
+        },
+        "bus": null,
+        "headsign": null
+       },
+       {
+        "type": "bus",
+        "minutes": 11,
+        "depart": "2026-11-20T19:04:00",
+        "arrive": "2026-11-20T19:15:00",
+        "from": "示意站 1",
+        "to": "示意轉乘站",
+        "from_location": {
+         "lat": 24.138,
+         "lng": 120.685
+        },
+        "to_location": {
+         "lat": 24.142,
+         "lng": 120.674
+        },
+        "bus": "5",
+        "headsign": "示意方向"
+       },
+       {
+        "type": "bus",
+        "minutes": 9,
+        "depart": "2026-11-20T19:19:00",
+        "arrive": "2026-11-20T19:28:00",
+        "from": "示意轉乘站",
+        "to": "示意站 2",
+        "from_location": {
+         "lat": 24.142,
+         "lng": 120.674
+        },
+        "to_location": {
+         "lat": 24.144,
+         "lng": 120.664
+        },
+        "bus": "75",
+        "headsign": "示意方向"
+       },
+       {
+        "type": "walk",
+        "minutes": 3,
+        "depart": "2026-11-20T19:28:00",
+        "arrive": "2026-11-20T19:31:00",
+        "from": "示意站 2",
+        "to": null,
+        "from_location": {
+         "lat": 24.144,
+         "lng": 120.664
+        },
+        "to_location": {
+         "lat": 24.144,
+         "lng": 120.662
+        },
+        "bus": null,
+        "headsign": null
+       }
+      ]
+     },
+     "sources": [
+      {
+       "video": "https://www.youtube.com/watch?v=EXAMPLE3",
+       "published_at": null,
+       "transcript_source": "自動字幕"
+      }
+     ]
+    }
+   ],
+   "uncertain": [
+    {
+     "id": "V3",
+     "name": "示範甜點店",
+     "address": null,
+     "lat": 24.15,
+     "lng": 120.67,
+     "state": "U",
+     "relevance": 0.41,
+     "explanation": null,
+     "explanation_source": null,
+     "evidence": "【料理風味｜朋友聚餐】甜點很漂亮",
+     "counter_evidence": [],
+     "price": null,
+     "hours": [
+      [
+       "12:00",
+       "22:00"
+      ]
+     ],
+     "closed_weekdays": [],
+     "checks": {
+      "budget": {
+       "state": "U",
+       "reason": "查不到價格"
+      },
+      "transit": {
+       "state": "T",
+       "reason": "全程公車＋步行"
+      },
+      "hours": {
+       "state": "T",
+       "reason": "19:23 到、20:53 吃完，22:00 打烊前"
+      }
+     },
+     "route": {
+      "depart": "2026-11-20T19:00:00",
+      "arrive": "2026-11-20T19:23:32",
+      "travel_min": 24,
+      "transfers": 0,
+      "fare": 18,
+      "summary": "走 1 分，19:01 搭 309 到 中正國小(專用道)，走 8 分（19:23 到店，0 次轉乘）",
+      "sections": [
+       {
+        "type": "walk",
+        "minutes": 1,
+        "depart": "2026-11-20T19:00:00",
+        "arrive": "2026-11-20T19:01:17",
+        "from": null,
+        "to": "臺中車站(A月台)",
+        "from_location": {
+         "lat": 24.137199,
+         "lng": 120.686897
+        },
+        "to_location": {
+         "lat": 24.137749,
+         "lng": 120.686462
+        },
+        "bus": null,
+        "headsign": null
+       },
+       {
+        "type": "bus",
+        "minutes": 14,
+        "depart": "2026-11-20T19:01:17",
+        "arrive": "2026-11-20T19:15:17",
+        "from": "臺中車站(A月台)",
+        "to": "中正國小(專用道)",
+        "from_location": {
+         "lat": 24.137749,
+         "lng": 120.686462
+        },
+        "to_location": {
+         "lat": 24.152529,
+         "lng": 120.667992
+        },
+        "bus": "309",
+        "headsign": "梧棲觀光漁港"
+       },
+       {
+        "type": "walk",
+        "minutes": 8,
+        "depart": "2026-11-20T19:15:17",
+        "arrive": "2026-11-20T19:23:32",
+        "from": "中正國小(專用道)",
+        "to": null,
+        "from_location": {
+         "lat": 24.152529,
+         "lng": 120.667992
+        },
+        "to_location": {
+         "lat": 24.150999,
+         "lng": 120.663498
+        },
+        "bus": null,
+        "headsign": null
+       }
+      ]
+     },
+     "sources": []
+    }
+   ],
+   "rejected": [
+    {
+     "id": "V4",
+     "name": "示範拉麵",
+     "address": null,
+     "lat": 24.16,
+     "lng": 120.65,
+     "state": "F",
+     "relevance": 0.52,
+     "explanation": null,
+     "explanation_source": null,
+     "evidence": "【料理風味｜朋友聚餐】湯頭濃郁",
+     "counter_evidence": [],
+     "price": [
+      200,
+      280
+     ],
+     "hours": [
+      [
+       "11:00",
+       "21:00"
+      ]
+     ],
+     "closed_weekdays": [],
+     "checks": {
+      "budget": {
+       "state": "T",
+       "reason": "200–280 元，在 600 元內"
+      },
+      "transit": {
+       "state": "F",
+       "reason": "單段步行 12 分超過 10 分"
+      },
+      "hours": {
+       "state": "U",
+       "reason": "未查核"
+      }
+     },
+     "route": null,
+     "sources": []
+    }
+   ],
+   "notes": [],
+   "data": "corpus/restaurants.json"
+  },
+  "http_400": {
+   "_http_error": {
+    "status": 400,
+    "error": "budget（每人預算，元）要是正整數"
+   }
+  },
+  "backend_down": {
+   "_http_error": {
+    "status": null,
+    "error": "連不上後端（http://127.0.0.1:8000），請確認 api/server.py 已啟動"
+   }
+  }
+ }
+}
